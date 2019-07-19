@@ -76,9 +76,9 @@
 
         // 設定ファイルパラメータ展開
         [[ConfigXMLParser new] start];
-#warning TODO
-        // 「SF-002：認証」機能を呼び出す。
 
+        // 「SF-002：認証」機能を呼び出す。
+        [[NetWorkManager shareNetWorkManager] getFaceIDSignWithCurrentController:self];
     } else{
 
         // エラーあり時

@@ -46,13 +46,17 @@ static AFHTTPSessionManager* sessionManager = nil;
             // ポップアップでエラーメッセージ「SF-001-01E」を表示する。
             [[ErrorManager shareErrorManager] showWithErrorCode:@"SF-001-01E" atCurrentController:controller managerType:errorManagerTypeClose];
         } else{
-            
+            [weakSelf dealWithResponse:responseObject];
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
         // ポップアップでエラーメッセージ「SF-001-01E」を表示する。
         [[ErrorManager shareErrorManager] showWithErrorCode:@"SF-001-01E" atCurrentController:controller managerType:errorManagerTypeClose];
     }];
+}
+
+- (void)dealWithResponse:(id)responseObject {
+    
 }
 
 @end
