@@ -6,7 +6,7 @@
 //  Copyright © 2019 fujitsu. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
+#import <mockSDK/loadUI.h>
 
 @interface ViewController : UIViewController
 

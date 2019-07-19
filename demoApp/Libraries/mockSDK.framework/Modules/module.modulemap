@@ -1,0 +1,6 @@
+framework module mockSDK {
+  umbrella header "mockSDK.h"
+
+  export *
+  module * { export * }
+}
