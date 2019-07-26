@@ -38,7 +38,7 @@
     
     UILabel *l = [[UILabel alloc] initWithFrame:CGRectMake(0, [UIScreen mainScreen].bounds.size.height * 0.5 + 125, [UIScreen mainScreen].bounds.size.width, 30)];
     l.text = @"処理結果送信中・・・";
-    l.textColor = [UIColor colorWithHexString:[UITool shareUITool].bodyTextColorHexString alpha:1.0f];
+    l.textColor = kBodyTextColor;
     l.textAlignment = NSTextAlignmentCenter;
     [self.view addSubview:l];
 }

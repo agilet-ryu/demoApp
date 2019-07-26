@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-
+#import "InfoDatabase.h"
 
 /**
  エラー画面の種類
@@ -16,7 +16,8 @@
  - errorManagerTypeClose: 「はい」ボタンのみ、押す時、ライブラリーを終了する
  */
 typedef NS_ENUM(NSInteger, errorManagerType) {
-    errorManagerTypeClose,
+    errorManagerTypeSDKClose,
+    errorManagerTypeAlertClose
 };
 
 NS_ASSUME_NONNULL_BEGIN
@@ -31,14 +32,24 @@ NS_ASSUME_NONNULL_BEGIN
 + (instancetype)shareErrorManager;
 
 /**
+ エラー処理
+
+ @param errorCode エラーコード
+ @param msg エラー
+ @param controller ポップアップ
+ */
+- (void)dealWithErrorCode:(NSString *)errorCode msg:(NSString *)msg andController:(UIViewController *)controller;
+
+/**
  エラー画面を表示する
 
  @param errorCode エラーコード
  @param currentController ポップアップ
- @param type <#type description#>
+ @param type エラー画面の種類
+ @param firstMsg エラーメッセージ
+ @param secondMsg エラーメッセージ
  */
-- (void)showWithErrorCode:(NSString *)errorCode atCurrentController:(UIViewController *)currentController managerType:(errorManagerType)type;
-
+- (void)showWithErrorCode:(NSString *)errorCode atCurrentController:(UIViewController *)currentController managerType:(errorManagerType)type addFirstMsg:(NSString *)firstMsg addSecondMsg:(NSString *)secondMsg;
 @end
 
 NS_ASSUME_NONNULL_END

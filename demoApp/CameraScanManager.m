@@ -16,6 +16,8 @@
 @implementation CameraScanManager
 
 static CameraScanManager *manager;
+
+// カメラスキャン初期化
 + (instancetype)sharedCameraScanManager{
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -24,27 +26,44 @@ static CameraScanManager *manager;
     return manager;
 }
 
+// カメラスキャンの初期化処理（関数_setConfig／prepareResource）を呼び出し、カメラ撮影が実施できる状態とする。
 - (instancetype)initWithPDLCameraScan {
     self = [super init];
     if (self) {
         PDLCameraScan *scan = [PDLCameraScan sharedInstance];
         scan.delegate = self;
+
+#warning TODO　※ 設定値の詳細は、「システム機能仕様 6) 特別要件」参照
         // ライブラリの設定の更新
         PDLScanConfig *config = [scan getConfig];
         config.previewParam.previewDirection = PDLScanPreviewDirectionLandscape;
         config.guideParam.visible = YES;
         config.cameraParam.detectedDocSizeThreshold = 0.8;
         PDLCameraScanError *scanError1 = [scan setConfig:config];
+        
         if (scanError1.code != PDLCameraScanErrorCodeOK){
-            NSLog(@"setConfig error : %ld", (long)scanError1.code);
+            
+            // カメラスキャン初期化（設定）結果_異常時
+            if ([self.delegate respondsToSelector:@selector(cameraScanFailure:)]) {
+                [self.delegate cameraScanFailure:scanError1.code];
+            }
         } else {
-            // フレームワーク初期化
+            
+            // カメラスキャン初期化（設定）結果_正常時
+            // カメラスキャンの関数_prepareResourceを呼び出し、カメラスキャンの初期化処理を行う。
             PDLCameraScanError *scanError = [scan prepareResource];
-            if (scanError.code == PDLCameraScanErrorCodeOK) {
-                NSLog(@"prepareResource OK : %ld", (long)scanError.code);
-            } else {
-                // エラー
-                NSLog(@"prepareResource error : %ld", (long)scanError.code);
+            if (scanError.code != PDLCameraScanErrorCodeOK) {
+                
+                // カメラスキャン初期化（設定）結果_異常時
+                if ([self.delegate respondsToSelector:@selector(cameraScanFailure:)]) {
+                    [self.delegate cameraScanFailure:scanError.code];
+                }
+            } else{
+                
+                // カメラスキャン初期化（リソース）結果_正常時
+                if ([self.delegate respondsToSelector:@selector(cameraScanPrepareSuccess)]) {
+                    [self.delegate cameraScanPrepareSuccess];
+                }
             }
         }
         self.scan = scan;
@@ -52,41 +71,57 @@ static CameraScanManager *manager;
     return self;
 }
 
+// カメラスキャン起動
 - (void)start{
     UIViewController *RootVC = [UIApplication sharedApplication].keyWindow.rootViewController;
-    
     UIViewController *topVC = RootVC;
-    
     while (topVC.presentedViewController) {
         topVC = topVC.presentedViewController;
     }
-    // カメラプレビュー開始
+    
+    // カメラスキャンの起動処理（関数_captureOnce）を呼び出し、「G0050-01：本人確認書類撮影画面」に遷移する。
     PDLCameraScanError *scanError = [self.scan captureOnce:topVC];
     if (scanError.code != PDLCameraScanErrorCodeOK) {
-        NSLog(@"captureOnce bad: %ld", (long)scanError.code);
+        
+        // カメラスキャン起動結果_正常
+        if ([self.delegate respondsToSelector:@selector(cameraScanFailure:)]) {
+            [self.delegate cameraScanFailure:scanError.code];
+        }
     } else {
-        NSLog(@"captureOnce ok : %ld", (long)scanError.code);
+        
+        // カメラスキャン起動結果_異常時時
+        if ([self.delegate respondsToSelector:@selector(cameraScanStart)]) {
+            [self.delegate cameraScanStart];
+        }
     }
 }
 
+// Scanに必要なリソースを解放します
+- (void)deinitResource{
+    [self.scan deinitResource];
+}
+
+#pragma mark - delegate
 // 書類の認識成功時に呼び出されます。
 - (void)didScanSuccess:(PDLDocInfo *)cardInfo {
     UIImage *image = cardInfo.image;
-    if ([self.delegate respondsToSelector:@selector(cameraScanSuccessWithImage:)]) {
-        [self.delegate cameraScanSuccessWithImage:image];
+    NSInteger result = cardInfo.cropResult;
+    if ([self.delegate respondsToSelector:@selector(cameraScanSuccessWithImage:andCropResult:)]) {
+        [self.delegate cameraScanSuccessWithImage:image andCropResult:result];
     }
-//    CGFloat h = image.size.height * 0.5;
-//    CGFloat w = image.size.width * 0.5;
-//    [self.scan convertOcrImage:cardInfo.image docWidth:w docHeight:h toResolution:10 toQuality:10];
-    NSLog(@"didScanSuccess");
 }
 
 // プレビュー／認識中に何らかのエラーが発生した場合に呼び出されます。
 - (void)didScanFailure:(PDLCameraScanError *)error {
-    NSLog(@"Preview failed : %ld", (long)error.code);
+    if ([self.delegate respondsToSelector:@selector(cameraScanFailure:)]) {
+        [self.delegate cameraScanFailure:error.code];
+    }
 }
 
+// キャンセルボタンを押す時に呼び出されます。
 - (void)didScanCancel {
-    NSLog(@"Preview didScanCancel");
+    if ([self.delegate respondsToSelector:@selector(cameraScanCancel)]) {
+        [self.delegate cameraScanCancel];
+    }
 }
 @end

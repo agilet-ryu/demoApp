@@ -8,60 +8,42 @@
 
 #import "secondViewController.h"
 #import "UITool.h"
+#import "Utils.h"
 #import "hudView.h"
-#import "thirdViewController.h"
 #import "loginViewController.h"
-#import "CameraScanManager.h"
+#import "InfoDatabase.h"
 
-@interface secondViewController ()<hudViewDelegate, cameraScanManagerDelegate>
-@property (nonatomic, strong) UIButton *nextBT;
-@property (nonatomic, assign) BOOL openCamera;  // ccameraScan或NFC
-@property (nonatomic, assign) BOOL isFront;  // 正面还是反面
-@property (nonatomic, strong) CameraScanManager *cameraScanManager;
+@interface secondViewController ()
+@property (nonatomic, strong) UIButton *nextBT; // 「次へ」ボタン
+@property (nonatomic, assign) BOOL openCamera;  // ccameraScan又はNFC
+
 @end
 
 @implementation secondViewController
 
-- (CameraScanManager *)cameraScanManager{
-    if (!_cameraScanManager) {
-        _cameraScanManager = [CameraScanManager sharedCameraScanManager];
-        _cameraScanManager.delegate = self;
-    }
-    return _cameraScanManager;
-}
-
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.view.backgroundColor = [UIColor whiteColor];
-    self.title = @"読み取り方法の選択";
+
+    // 画面初期化
     [self initView];
+    
+    // プログレスバーを表示する
     [self initProgressBar];
 }
 
-- (void)viewWillAppear:(BOOL)animated{
-    [super viewWillAppear:animated];
-    self.cameraScanManager.delegate = self;
-}
-
-- (void)viewDidDisappear:(BOOL)animated{
-    [super viewDidDisappear:animated];
-    for (UIView *v in self.view.subviews) {
-        v.hidden = NO;
-    }
-    [self.navigationController setNavigationBarHidden:NO animated:NO];
-    self.view.backgroundColor = [UIColor whiteColor];
-}
-
+// 画面初期化
 - (void)initView{
+    self.view.backgroundColor = [UIColor whiteColor];
+    self.title = @"読み取り方法の選択";
     UIBarButtonItem *back = [[UIBarButtonItem alloc] init];
     back.title = @"";
     self.navigationItem.backBarButtonItem = back;
     
     UILabel *sectionL = [[UILabel alloc] initWithFrame:CGRectMake(16, 64, [UIScreen mainScreen].bounds.size.width - 32, 100)];
     sectionL.numberOfLines = 0;
-    sectionL.text = [NSString stringWithFormat:@"%@の読み取り方法を選択してください。", self.currentModel.buttonTitle];
+    sectionL.text = [NSString stringWithFormat:@"%@の読み取り方法を選択してください。", self.currentModel.kbnModel.name];
     sectionL.font = [UIFont systemFontOfSize:[UITool shareUITool].textSizeMedium];
-    sectionL.textColor = [UIColor colorWithHexString:[UITool shareUITool].bodyTextColorHexString alpha:1.0f];
+    sectionL.textColor = kBodyTextColor;
     [self.view addSubview:sectionL];
     
     [self.bt1 setFrame:CGRectMake(16, 164, [UIScreen mainScreen].bounds.size.width - 32, 150)];
@@ -76,7 +58,7 @@
     [footBT setFrame:CGRectMake(16, [UIScreen mainScreen].bounds.size.height - 68, [UIScreen mainScreen].bounds.size.width - 32, 54)];
     [footBT setTitle:@"次へ" forState:UIControlStateNormal];
     [footBT addTarget:self action:@selector(goNextView) forControlEvents:UIControlEventTouchUpInside];
-    footBT.backgroundColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:0.3f];
+    footBT.backgroundColor = kBaseColorUnEnabled;
     footBT.userInteractionEnabled = false;
     footBT.layer.cornerRadius = 6.0f;
 //    footBT.layer.shadowOpacity = 0.15f;
@@ -86,68 +68,59 @@
     self.nextBT = footBT;
 }
 
+// 次へボタンタップ時
 - (void)goNextView {
+    
+    // 共通領域初期化
+    InfoDatabase *db = [InfoDatabase shareInfoDatabase];
+    SystemCode *sysCode = [Utils getSystemCode];
+    int camera = sysCode.read_method_KBN.CAMERA.code;
+    int nfc = sysCode.read_method_KBN.NFC.code;
+    
     if (self.openCamera) {
-        self.isFront = YES;
-        hudView *hud = [[hudView alloc] initWithModel:self.currentModel isFront:YES];
-        hud.delegate = self;
+        
+        // 本人確認内容データの読取方法「1:カメラ撮影」を設定する。
+        db.identificationData.GAIN_TYPE = camera;
+        
+        // 「カメラ撮影」を選択済の場合、「G0040-01：本人確認書類撮影開始前画面」へ遷移する。
+        hudView *hud = [[hudView alloc] initWithModel:self.currentModel andController:self];
         [hud show];
     } else {
+        
+        // 本人確認内容データの読取方法「2:NFC読取」を設定する。
+        db.identificationData.GAIN_TYPE = nfc;
+        
+        // 「NFC読み取り」を選択済の場合、「G0070-01：暗証番号入力画面」へ遷移する。
         loginViewController *logVC = [[loginViewController alloc] init];
         logVC.currentModel = self.currentModel;
         [self.navigationController pushViewController:logVC animated:YES];
     }
 }
 
+// 「カメラ撮影」ボタンタップ時
 - (void)didBt1Clicked:(UIButton *)button{
-    self.openCamera = YES;
-    self.nextBT.userInteractionEnabled = YES;
-    self.nextBT.backgroundColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0f];
-    button.layer.borderColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0f].CGColor;
-    self.bt2.layer.borderColor = [UIColor colorWithHexString:[UITool shareUITool].lineColorHexString alpha:1.0f].CGColor;
+    [self controlNextButton:YES];
 }
 
+// 「NFC読み取り」ボタンタップ時
 - (void)didBt2Clicked:(UIButton *)button{
-    self.openCamera = NO;
+    [self controlNextButton:NO];
+}
+
+// ボタンを制御する
+- (void)controlNextButton:(BOOL)isOpenCamera{
+    self.openCamera = isOpenCamera;
     self.nextBT.userInteractionEnabled = YES;
-    self.nextBT.backgroundColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0f];
-    button.layer.borderColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0f].CGColor;
-    self.bt1.layer.borderColor = [UIColor colorWithHexString:[UITool shareUITool].lineColorHexString alpha:1.0f].CGColor;
+    self.nextBT.backgroundColor = kBaseColor;
+    self.bt1.layer.borderColor = isOpenCamera ? kBaseColor.CGColor : kLineColor.CGColor;
+    self.bt2.layer.borderColor = isOpenCamera ? kLineColor.CGColor : kBaseColor.CGColor;
 }
 
-- (void)didNextClicked{
-//    UIView *v = [[UIView alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height)];
-//    v.backgroundColor = [UIColor blackColor];
-//    v.tag = 1000;
-//    UIWindow *keyWin = [UIApplication sharedApplication].keyWindow;
-//    [keyWin addSubview:v];
-    [self.cameraScanManager start];
-    for (UIView *v in self.view.subviews) {
-        v.hidden = YES;
-    }
-    [self.navigationController setNavigationBarHidden:YES animated:NO];
-    self.view.backgroundColor = [UIColor blackColor];
-}
-
-- (void)cameraScanSuccessWithImage:(UIImage *)image{
-    if (self.isFront) {
-        self.currentModel.frontImage = image;
-        self.isFront = NO;
-        hudView *hud = [[hudView alloc] initWithModel:self.currentModel isFront:NO];
-        hud.delegate = self;
-        [hud show];
-    } else{
-        self.currentModel.behindImage = image;
-        thirdViewController *th = [[thirdViewController alloc] init];
-        th.currentModel = self.currentModel;
-        [self.navigationController pushViewController:th animated:YES];
-    }
-}
-
+// プログレスバーを表示する
 - (void)initProgressBar {
     UIProgressView *p = [[ UIProgressView alloc] initWithFrame:CGRectMake(0, 64, [UIScreen mainScreen].bounds.size.width, 2)];
     p.trackTintColor = [UIColor lightGrayColor];
-    p.tintColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0];
+    p.tintColor = kBaseColor;
     [p setProgress:0.2 animated:NO];
     [self.view addSubview:p];
     
@@ -155,19 +128,11 @@
     self.navigationItem.rightBarButtonItem = back;
 }
 
+//
 - (void)backTo{
     [self.navigationController dismissViewControllerAnimated:YES completion:^{
         
     }];
 }
-/*
-#pragma mark - Navigation
-
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
-}
-*/
 
 @end

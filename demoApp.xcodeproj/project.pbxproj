@@ -51,6 +51,8 @@
 		02E14A8D22D3171E00A293F2 /* initManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 02E14A8C22D3171E00A293F2 /* initManager.m */; };
 		02E14A9022D337E300A293F2 /* NSString+checkString.m in Sources */ = {isa = PBXBuildFile; fileRef = 02E14A8F22D337E300A293F2 /* NSString+checkString.m */; };
 		02E14A9322D3459E00A293F2 /* NSArray+checkArray.m in Sources */ = {isa = PBXBuildFile; fileRef = 02E14A9222D3459E00A293F2 /* NSArray+checkArray.m */; };
+		02F937DD22E5AB6F003BB9E6 /* Utils.m in Sources */ = {isa = PBXBuildFile; fileRef = 02F937DC22E5AB6F003BB9E6 /* Utils.m */; };
+		02F937E022E81D37003BB9E6 /* SystemCode.m in Sources */ = {isa = PBXBuildFile; fileRef = 02F937DF22E81D37003BB9E6 /* SystemCode.m */; };
 		0303701822B876E400FB5253 /* hudView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0303701722B876E400FB5253 /* hudView.m */; };
 		0303AA2D22C0AB9C00CA433F /* htmlViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0303AA2C22C0AB9C00CA433F /* htmlViewController.m */; };
 		030497B222C1AF4400A3F163 /* verify-unexecuted.png in Resources */ = {isa = PBXBuildFile; fileRef = 0304979322C1AF4300A3F163 /* verify-unexecuted.png */; };
@@ -184,6 +186,10 @@
 		02E14A8F22D337E300A293F2 /* NSString+checkString.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSString+checkString.m"; sourceTree = "<group>"; };
 		02E14A9122D3459E00A293F2 /* NSArray+checkArray.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSArray+checkArray.h"; sourceTree = "<group>"; };
 		02E14A9222D3459E00A293F2 /* NSArray+checkArray.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSArray+checkArray.m"; sourceTree = "<group>"; };
+		02F937DB22E5AB6F003BB9E6 /* Utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Utils.h; sourceTree = "<group>"; };
+		02F937DC22E5AB6F003BB9E6 /* Utils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Utils.m; sourceTree = "<group>"; };
+		02F937DE22E81D37003BB9E6 /* SystemCode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SystemCode.h; sourceTree = "<group>"; };
+		02F937DF22E81D37003BB9E6 /* SystemCode.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SystemCode.m; sourceTree = "<group>"; };
 		0301097722BCADCC008A53FD /* PMIJudgeRectangle.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = PMIJudgeRectangle.framework; sourceTree = "<group>"; };
 		0301097822BCADCC008A53FD /* PMIPerspectiveTransform.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = PMIPerspectiveTransform.framework; sourceTree = "<group>"; };
 		0301097922BCADCC008A53FD /* PDLCameraScan.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = PDLCameraScan.framework; sourceTree = "<group>"; };
@@ -464,6 +470,8 @@
 				02A5D56822DF527C0029BCDD /* ConfigXMLParser.h */,
 				02A5D56922DF527C0029BCDD /* ConfigXMLParser.m */,
 				02A5D57022E03DB00029BCDD /* Code.plist */,
+				02F937DE22E81D37003BB9E6 /* SystemCode.h */,
+				02F937DF22E81D37003BB9E6 /* SystemCode.m */,
 				02A5D56D22E037530029BCDD /* ErrorManager.h */,
 				02A5D56E22E037530029BCDD /* ErrorManager.m */,
 				02CBBBB822D2F69D00325295 /* SplashViewController.h */,
@@ -472,12 +480,14 @@
 				02A5D57322E0A76C0029BCDD /* NetWorkManager.m */,
 				02E14A8E22D337E300A293F2 /* NSString+checkString.h */,
 				02E14A8F22D337E300A293F2 /* NSString+checkString.m */,
+				02E14A9122D3459E00A293F2 /* NSArray+checkArray.h */,
 				02E14A9222D3459E00A293F2 /* NSArray+checkArray.m */,
 				02A5D55A22DE17AD0029BCDD /* ViewInfos.h */,
 				02A5D55B22DE17AD0029BCDD /* ViewInfos.m */,
 				037A8EF022B75D2000FA6FD4 /* ViewController.h */,
 				037A8EF122B75D2000FA6FD4 /* ViewController.m */,
-				02E14A9122D3459E00A293F2 /* NSArray+checkArray.h */,
+				02F937DB22E5AB6F003BB9E6 /* Utils.h */,
+				02F937DC22E5AB6F003BB9E6 /* Utils.m */,
 				037D2C9222BB5ACA005F38DF /* CameraScanManager.h */,
 				037D2C9322BB5ACA005F38DF /* CameraScanManager.m */,
 				0307FC3D22C2FA880079D5CF /* faceIDManager.h */,
@@ -738,9 +748,11 @@
 				02E14A9022D337E300A293F2 /* NSString+checkString.m in Sources */,
 				02E14A9322D3459E00A293F2 /* NSArray+checkArray.m in Sources */,
 				02CBBBBA22D2F69D00325295 /* SplashViewController.m in Sources */,
+				02F937DD22E5AB6F003BB9E6 /* Utils.m in Sources */,
 				02A5D56722DF1BBE0029BCDD /* ResultModel.m in Sources */,
 				02A5D56422DEFB0A0029BCDD /* Config.m in Sources */,
 				033367A922BA063400CCE076 /* resultViewController.m in Sources */,
+				02F937E022E81D37003BB9E6 /* SystemCode.m in Sources */,
 				02E14A8D22D3171E00A293F2 /* initManager.m in Sources */,
 				037A8F6422B7770800FA6FD4 /* TableViewController.m in Sources */,
 				03BCADAD22B8AC2600CC4004 /* UITool.m in Sources */,

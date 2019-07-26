@@ -12,6 +12,7 @@
 #import <CommonCrypto/CommonCryptor.h>
 #import <math.h>
 #import <AFNetworking/AFNetworking.h>
+#import "ErrorManager.h"
 
 #define kMGFaceIDNetworkHost @"https://api-sgp.megvii.com"
 #define kMGFaceIDNetworkTimeout 30
@@ -56,13 +57,17 @@ constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
                          if ([weakSelf.delegate respondsToSelector:@selector(getBizTokenSuccuss:)]) {
                              [weakSelf.delegate getBizTokenSuccuss:bizTokenStr];
                          }
+                     } else {
+                         
                      }
                  }
                  failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
                      NSData *data = error.userInfo[@"com.alamofire.serialization.response.error.data"];
                      NSDictionary *errdic = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingAllowFragments error:nil];
                      NSLog(@"%@  -^-^-^^-  %@", errdic, error);
-                     [weakSelf setFailureDelegateWithString:errdic[@"error"] withTitle:@"getBizTokenFailure"];
+                     
+                     // 「SF-104：FaceIDトークン取得」返却結果「エラーコード」が通信エラー/画像エラーの場合
+                     [[ErrorManager shareErrorManager] showWithErrorCode:@"CM-001-05E" atCurrentController:viewController managerType:errorManagerTypeAlertClose addFirstMsg:@"" addSecondMsg:@""];
                  }];
 }
 

@@ -32,7 +32,6 @@
 //    [self dealWithParam];
 }
 
-
 /**
  スプラッシュ画面を初期化する
  */
@@ -66,9 +65,9 @@
     if (!self.config.IMAGE_TYPE) {
         [errorArray addObject:@"EC01-005"];
     }
+    
     // 共通領域の初期化
     InfoDatabase *infoDB = [InfoDatabase shareInfoDatabase];
-
     if (![NSArray isBlankArray:errorArray]) {
 
         // エラーなし時、呼出元アプリ入力パラメータ展開
@@ -85,13 +84,9 @@
         NSString * errorCode = [errorArray lastObject];
 
         // エラーコードを共通領域の「本人確認内容データ.エラーコード」へ設定する
-        infoDB.identificationData.ERROR_CODE = errorCode;
-
         // 共通領域の「本人確認内容データ.認証処理結果」へ「異常」を設定する
-        infoDB.identificationData.SDK_RESULT = @"異常";
-
         // ポップアップでエラーメッセージ「SF-001-01E」を表示する。
-        [[ErrorManager shareErrorManager] showWithErrorCode:@"SF-001-01E" atCurrentController:self managerType:errorManagerTypeClose];
+        [[ErrorManager shareErrorManager] dealWithErrorCode:errorCode msg:@"SF-001-01E" andController:self];
     }
 }
 

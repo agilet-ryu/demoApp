@@ -11,17 +11,9 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol hudViewDelegate <NSObject>
-
--(void)didNextClicked;
-
-@end
-
 @interface hudView : UIView
 
-@property(nonatomic, weak) id<hudViewDelegate>delegate;
-
--(instancetype)initWithModel:(firstTableModel *)currentModel isFront:(BOOL)isFront;
+-(instancetype)initWithModel:(firstTableModel *)currentModel andController:(UIViewController *)controller;
 -(void)show;
 -(void)hide;
 

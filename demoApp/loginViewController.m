@@ -9,6 +9,8 @@
 #import "loginViewController.h"
 #import "UITool.h"
 #import "ReadICViewController.h"
+#import "InfoDatabase.h"
+#import "Utils.h"
 
 @interface loginViewController ()<UITextFieldDelegate>
 
@@ -36,15 +38,14 @@
     sectionL.numberOfLines = 0;
     sectionL.text = @"ICチップから情報を取得します。\n読み取り用の暗証番号(※)を入力してください。\n暗証番号に関する説明を記載";
     sectionL.font = [UIFont systemFontOfSize:[UITool shareUITool].textSizeMedium];
-    sectionL.textColor = [UIColor colorWithHexString:[UITool shareUITool].bodyTextColorHexString alpha:1.0f];
+    sectionL.textColor = kBodyTextColor;
     [self.view addSubview:sectionL];
-    
     
     UIButton *footBT = [UIButton buttonWithType:UIButtonTypeCustom];
     [footBT setFrame:CGRectMake(16, [UIScreen mainScreen].bounds.size.height - 68, [UIScreen mainScreen].bounds.size.width - 32, 54)];
     [footBT setTitle:@"次へ" forState:UIControlStateNormal];
     [footBT addTarget:self action:@selector(goNextView) forControlEvents:UIControlEventTouchUpInside];
-    footBT.backgroundColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:0.3f];
+    footBT.backgroundColor = kBaseColorUnEnabled;
     footBT.userInteractionEnabled = NO;
     footBT.layer.cornerRadius = 6.0f;
 //    footBT.layer.shadowOpacity = 0.15f;
@@ -53,14 +54,16 @@
     [self.view addSubview:footBT];
     self.nextBT = footBT;
     [self addViewGroup];
-    [self addViewGroup2];
+    
+    InfoDatabase *db = [InfoDatabase shareInfoDatabase];
+    if (db.identificationData.DOC_TYPE == [Utils getSystemCode].id_doc_KBN.CARD_DRIVER.code) [self addViewGroup2];
     [self initProgressBar];
 }
 
 - (void)initProgressBar {
     UIProgressView *p = [[ UIProgressView alloc] initWithFrame:CGRectMake(0, 64, [UIScreen mainScreen].bounds.size.width, 2)];
     p.trackTintColor = [UIColor lightGrayColor];
-    p.tintColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0];
+    p.tintColor = kBaseColor;
     [p setProgress:0.3 animated:NO];
     [self.view addSubview:p];
     
@@ -80,9 +83,9 @@
     [self.view addSubview:title];
     
     UITextField *tf = [[UITextField alloc] initWithFrame:CGRectMake(16, 250, [UIScreen mainScreen].bounds.size.width - 32, 50)];
-    tf.backgroundColor = [UIColor colorWithHexString:[UITool shareUITool].lineColorHexString alpha:1.0f];
+    tf.backgroundColor = kLineColor;
     tf.borderStyle = UITextBorderStyleRoundedRect;
-    tf.tintColor = [UIColor colorWithHexString:[UITool shareUITool].bodyTextColorHexString alpha:1.0f];
+    tf.tintColor = kBodyTextColor;
     tf.placeholder = @"数値４桁";
     tf.keyboardType = UIKeyboardTypeNumberPad;
     tf.keyboardAppearance = UIKeyboardAppearanceAlert;
@@ -112,9 +115,9 @@
     
     UITextField *tf = [[UITextField alloc] initWithFrame:CGRectMake(16, 380, [UIScreen mainScreen].bounds.size.width - 32, 50)];
     tf.borderStyle = UITextBorderStyleRoundedRect;
-    tf.tintColor = [UIColor colorWithHexString:[UITool shareUITool].bodyTextColorHexString alpha:1.0f];
+    tf.tintColor = kBodyTextColor;
     tf.placeholder = @"数値４桁";
-    tf.backgroundColor = [UIColor colorWithHexString:[UITool shareUITool].lineColorHexString alpha:1.0f];
+    tf.backgroundColor = kLineColor;
     tf.keyboardType = UIKeyboardTypeNumberPad;
     tf.keyboardAppearance = UIKeyboardAppearanceAlert;
     tf.secureTextEntry = YES;
@@ -166,14 +169,14 @@
     if (textField.text.length == 4) {
         textField.backgroundColor = [UIColor whiteColor];
     } else {
-        textField.backgroundColor = [UIColor colorWithHexString:[UITool shareUITool].lineColorHexString alpha:1.0f];
+        textField.backgroundColor = kLineColor;
     }
     if (self.tf1.text.length == 4 && self.tf2.text.length == 4) {
         self.nextBT.userInteractionEnabled = YES;
-        self.nextBT.backgroundColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0f];
+        self.nextBT.backgroundColor = kBaseColor;
     } else{
         self.nextBT.userInteractionEnabled = NO;
-        self.nextBT.backgroundColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:0.3f];
+        self.nextBT.backgroundColor = kBaseColorUnEnabled;
     }
 }
 

@@ -12,11 +12,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface NSString (checkString)
 + (BOOL)isBlankString:(NSString *)aStr;
-/**< 加密方法 */
-- (NSString*)aci_encryptWithAES;
-
-/**< 解密方法 */
-- (NSString*)aci_decryptWithAES;
 @end
 
 NS_ASSUME_NONNULL_END

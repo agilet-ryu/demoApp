@@ -23,6 +23,17 @@ static InfoDatabase *infoDB = nil;
     });
     return infoDB;
 }
+
+// 
+- (NSString *)getErrorStringWithErrorCode:(NSString *)errorCode{
+    NSString *errorString = [NSString new];
+    NSString *filePath = [[NSBundle mainBundle] pathForResource:@"Code.plist" ofType:nil];
+    NSDictionary *dic = [NSDictionary dictionaryWithContentsOfFile:filePath];
+    NSDictionary *errorDic = [NSDictionary dictionaryWithDictionary:dic[@"errorCode"]];
+    NSArray *a = [NSArray arrayWithArray:errorDic[errorCode]];
+    errorString = [NSString stringWithFormat:@"%@", a[0]];
+    return errorString;
+}
 @end
 
 @implementation IDENTIFICATION_DATA

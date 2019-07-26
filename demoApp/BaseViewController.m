@@ -36,7 +36,7 @@
     UILabel *l = [[UILabel alloc] init];
     l.numberOfLines = 0;
     l.font = [UIFont systemFontOfSize:[UITool shareUITool].textSizeMedium];
-    l.textColor = [UIColor colorWithHexString:[UITool shareUITool].bodyTextColorHexString alpha:1.0f];
+    l.textColor = kBodyTextColor;
     [self.view addSubview:l];
     self.headerLabel = l;
     
@@ -52,7 +52,7 @@
     if (self.progress) {
         UIProgressView *p = [[ UIProgressView alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, 2)];
         p.trackTintColor = [UIColor lightGrayColor];
-        p.tintColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0];
+        p.tintColor = kBaseColor;
         [p setProgress:self.progress animated:NO];
         [self.view addSubview:p];
     }
@@ -70,7 +70,7 @@
 
 - (void)setButtonInteractionEnabled:(BOOL)buttonInteractionEnabled{
     _buttonInteractionEnabled = buttonInteractionEnabled;
-    self.footerButton.backgroundColor = buttonInteractionEnabled ? [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0f] : [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:0.3f];
+    self.footerButton.backgroundColor = buttonInteractionEnabled ? kBaseColor : kBaseColorUnEnabled;
     self.footerButton.userInteractionEnabled = buttonInteractionEnabled;
 }
 

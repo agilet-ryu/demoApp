@@ -56,27 +56,9 @@
     if (![self.currentTagName isEqualToString:@"properties"]) {
         [self.configDic setObject:string forKey:self.currentTagName];
     }
-//
-//    // カレント要素が"key"の時、受信のDictionaryのkeyを保存する
-//    if ([_currentTagName isEqualToString:@"key"]) {
-//        self.dataName = string;
-//    }
-//
-//    // カレント要素が"value"の時、受信のDictionaryのvalueを保存する
-//    if ([_currentTagName isEqualToString:@"value"]) {
-//        self.dataValue = string;
-//    }
 }
 
 - (void)parser:(NSXMLParser *)parser didEndElement:(NSString *)elementName namespaceURI:(NSString *)namespaceURI qualifiedName:(NSString *)qName {
-    
-    // カレント要素が"property"の時、受信のDictionaryのkeyとvalueを設定する
-//    if ([elementName isEqualToString:@"property"]) {
-//        if (self.dataName) {
-//            [self.configDic setObject:self.dataValue forKey:self.dataName];
-//        }
-//    }
-//
     // 受信のDictionaryを設定する時、nilにカレント要素を設定する
     self.currentTagName = nil;
 }
@@ -91,7 +73,7 @@
         id value = self.configDic[key];
         [configModel setValue:value forKeyPath:key];
     }
-    NSLog(@"%@  configDic   =%@", self.configDic, configModel);
+    
     // 設定ファイルの読み取りを完了する時を、設定ファイルデータを共通領域に格納する
     [[InfoDatabase shareInfoDatabase] setConfigFileData:configModel];
 }

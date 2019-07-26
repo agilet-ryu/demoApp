@@ -39,7 +39,7 @@
 - (void)initProgressBar {
     UIProgressView *p = [[ UIProgressView alloc] initWithFrame:CGRectMake(0, 64, [UIScreen mainScreen].bounds.size.width, 2)];
     p.trackTintColor = [UIColor lightGrayColor];
-    p.tintColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0];
+    p.tintColor = kBaseColor;
     [p setProgress:0.8 animated:NO];
     [self.view addSubview:p];
     
@@ -63,7 +63,7 @@
     sectionL.textAlignment = NSTextAlignmentCenter;
     sectionL.text = @"顔照合中・・・・";
     sectionL.font = [UIFont systemFontOfSize:[UITool shareUITool].textSizeMedium];
-    sectionL.textColor = [UIColor colorWithHexString:[UITool shareUITool].bodyTextColorHexString alpha:1.0f];
+    sectionL.textColor = kBodyTextColor;
     [self.view addSubview:sectionL];
     self.detailLabel = sectionL;
     

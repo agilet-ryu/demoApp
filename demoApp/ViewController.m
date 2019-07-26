@@ -12,6 +12,7 @@
 #import "NSString+checkString.h"
 #import "ConfigXMLParser.h"
 #import "initManager.h"
+#import "NetWorkManager.h"
 
 
 @interface ViewController ()
@@ -29,10 +30,12 @@
 //    NSString *a = @"大凧";
 //    NSString *b = [a aci_encryptWithAES];
 //    NSLog(@"哈或或或或%@", b);
+//
+//    UINavigationController *naVC = [[UINavigationController alloc] initWithRootViewController:[[SplashViewController alloc] init]];
+//    [self presentViewController:naVC animated:YES completion:^{
+//    }];
     
-    UINavigationController *naVC = [[UINavigationController alloc] initWithRootViewController:[[SplashViewController alloc] init]];
-    [self presentViewController:naVC animated:YES completion:^{
-    }];
+    [[NetWorkManager shareNetWorkManager] getOCRMessageWithBase64];
 //    Config *c = [Config new];
 //    [initManager startFinplexWithConfig:c Controller:self callback:^(ResultModel * _Nonnull resultModel, NSString * _Nonnull errorCode) {
 //

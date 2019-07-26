@@ -31,7 +31,7 @@
 - (void)initProgressBar {
     UIProgressView *p = [[ UIProgressView alloc] initWithFrame:CGRectMake(0, 64, [UIScreen mainScreen].bounds.size.width, 2)];
     p.trackTintColor = [UIColor lightGrayColor];
-    p.tintColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0];
+    p.tintColor = kBaseColor;
     [p setProgress:0.5 animated:NO];
     [self.view addSubview:p];
     
@@ -54,7 +54,7 @@
     sectionL.numberOfLines = 0;
     sectionL.text = @"スマートフォンの裏側に、本人確認書類をかざしてください。";
     sectionL.font = [UIFont systemFontOfSize:[UITool shareUITool].textSizeMedium];
-    sectionL.textColor = [UIColor colorWithHexString:[UITool shareUITool].bodyTextColorHexString alpha:1.0f];
+    sectionL.textColor = kBodyTextColor;
     [self.view addSubview:sectionL];
     
 //    UILabel *l = [[UILabel alloc] initWithFrame:CGRectMake(16, 200, [UIScreen mainScreen].bounds.size.width - 32, 200)];
@@ -82,9 +82,9 @@
     [footBT setFrame:CGRectMake(16, [UIScreen mainScreen].bounds.size.height - 68, [UIScreen mainScreen].bounds.size.width - 32, 54)];
     [footBT setTitle:@"キャンセル" forState:UIControlStateNormal];
     [footBT addTarget:self action:@selector(doCancel) forControlEvents:UIControlEventTouchUpInside];
-    [footBT setTitleColor:[UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0f] forState:UIControlStateNormal];
+    [footBT setTitleColor:kBaseColor forState:UIControlStateNormal];
     footBT.layer.borderWidth = [UITool shareUITool].lineWidth;
-    footBT.layer.borderColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0f].CGColor;
+    footBT.layer.borderColor = kBaseColor.CGColor;
     footBT.layer.cornerRadius = 6.0f;
 //    footBT.layer.shadowOpacity = 0.15f;
 //    footBT.layer.shadowOffset = CGSizeMake(6, 6);

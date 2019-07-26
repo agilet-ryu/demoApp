@@ -9,7 +9,10 @@
 #import <Foundation/Foundation.h>
 #import "UIColor+hexString.h"
 #import "ShadowButton.h"
-
+#define kBaseColor [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0f]
+#define kBaseColorUnEnabled [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:0.3f]
+#define kBodyTextColor [UIColor colorWithHexString:[UITool shareUITool].bodyTextColorHexString alpha:1.0f]
+#define kLineColor [UIColor colorWithHexString:[UITool shareUITool].lineColorHexString alpha:1.0f]
 NS_ASSUME_NONNULL_BEGIN
 
 @interface UITool : NSObject

@@ -13,6 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface OCRResultViewController : UIViewController
 @property (nonatomic, strong) firstTableModel *currentModel;
+@property (nonatomic, strong) NSString *jsStr;
 @end
 
 NS_ASSUME_NONNULL_END

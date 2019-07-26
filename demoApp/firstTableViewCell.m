@@ -40,7 +40,7 @@
     bu.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
     bu.titleLabel.font = [UIFont systemFontOfSize:[UITool shareUITool].textSizeMedium];
     [bu addTarget:self action:@selector(selectItem) forControlEvents:UIControlEventTouchUpInside];
-    bu.layer.borderColor = [UIColor colorWithHexString:[UITool shareUITool].lineColorHexString alpha:1.0f].CGColor;
+    bu.layer.borderColor = kLineColor.CGColor;
     bu.layer.cornerRadius = 5.0f;
     bu.layer.masksToBounds = YES;
     [self.contentView addSubview:bu];
@@ -49,8 +49,8 @@
 
 - (void)setModel:(firstTableModel *)model{
     _model = model;
-    [self.bu setTitle:model.buttonTitle forState:UIControlStateNormal];
-    self.bu.layer.borderColor = model.isSelected ? [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0].CGColor : [UIColor colorWithHexString:[UITool shareUITool].lineColorHexString alpha:1.0].CGColor;
+    [self.bu setTitle:model.kbnModel.name forState:UIControlStateNormal];
+    self.bu.layer.borderColor = model.isSelected ? kBaseColor.CGColor : kLineColor.CGColor;
 //    self.bu.layer.shadowOpacity = 0.15f;
 //    self.bu.layer.shadowOffset = CGSizeMake(4, 4);
 //    self.bu.layer.masksToBounds = NO;

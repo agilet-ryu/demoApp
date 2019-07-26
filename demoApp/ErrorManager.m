@@ -8,6 +8,7 @@
 
 #import "ErrorManager.h"
 
+
 @implementation ErrorManager
 
 static ErrorManager *manager = nil;
@@ -19,16 +20,55 @@ static ErrorManager *manager = nil;
     return manager;
 }
 
-- (void)showWithErrorCode:(NSString *)errorCode atCurrentController:(UIViewController *)currentController managerType:(errorManagerType)type {
-    NSString *errorString = [NSString stringWithFormat:@"%@", [self getErrorStringWithErrorCode:errorCode]];
+/**
+ エラー処理
+ 
+ @param errorCode エラーコード
+ @param msg エラー
+ @param controller ポップアップ
+ */
+- (void)dealWithErrorCode:(NSString *)errorCode msg:(NSString *)msg andController:(UIViewController *)controller{
     
-    UIAlertController *a = [UIAlertController alertControllerWithTitle:@"エラー" message:errorString preferredStyle:UIAlertControllerStyleAlert];
-    [a addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+    // 共通領域初期化
+    InfoDatabase *db = [InfoDatabase shareInfoDatabase];
+    
+    // エラーコードを共通領域の「本人確認内容データ.エラーコード」へ設定する
+    db.identificationData.ERROR_CODE = errorCode;
+    
+    // 共通領域の「本人確認内容データ.認証処理結果」へ「異常」を設定する
+    db.identificationData.SDK_RESULT = @"異常";
+    
+    // ポップアップでエラーメッセージ「SF-001-01E」を表示する。
+    [self showWithErrorCode:msg atCurrentController:controller managerType:errorManagerTypeSDKClose addFirstMsg:@"" addSecondMsg:@""];
+}
+
+/**
+ エラー画面を表示する
+ 
+ @param errorCode エラーコード
+ @param currentController ポップアップ
+ @param type エラー画面の種類
+ @param firstMsg エラーメッセージ
+ @param secondMsg エラーメッセージ
+ */
+- (void)showWithErrorCode:(NSString *)errorCode atCurrentController:(UIViewController *)currentController managerType:(errorManagerType)type addFirstMsg:(NSString *)firstMsg addSecondMsg:(NSString *)secondMsg {
+    
+    NSString *errorString = [NSString stringWithFormat:@"%@", [self getErrorStringWithErrorCode:errorCode]];
+    if ([errorString containsString:@"%1"] && firstMsg) {
+        [errorString stringByReplacingOccurrencesOfString:@"%1" withString:firstMsg];
+    }
+    if ([errorString containsString:@"%2"] && secondMsg) {
+        [errorString stringByReplacingOccurrencesOfString:@"%2" withString:secondMsg];
+    }
+    UIAlertController *a = [UIAlertController alertControllerWithTitle:@"" message:errorString preferredStyle:UIAlertControllerStyleAlert];
+    [a addAction:[UIAlertAction actionWithTitle:@"はい" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
         
-        // ポップアップのOKボタンタップで｢SF-017:処理終了｣を呼び出す。
-        [currentController.navigationController dismissViewControllerAnimated:YES completion:^{
-            
-        }];
+        // 「SF-102:操作ログサーバ送信」、｢SF-017:処理終了｣を呼び出す。
+        if (type == errorManagerTypeSDKClose) {
+            [currentController.navigationController dismissViewControllerAnimated:YES completion:^{
+                
+            }];
+        }
     }]];
     [currentController presentViewController:a animated:YES completion:^{
         

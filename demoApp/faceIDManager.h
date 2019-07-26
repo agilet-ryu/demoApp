@@ -13,6 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @protocol faceIDManagerDelegate <NSObject>
 
+@optional
 - (void)didVerifySuccess:(NSString *)msg;
 
 - (void)didVerifyFailure:(NSString *)msg title:(NSString *)title;

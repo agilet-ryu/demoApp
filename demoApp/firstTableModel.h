@@ -8,19 +8,14 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-
+#import "Utils.h"
 NS_ASSUME_NONNULL_BEGIN
 
 @interface firstTableModel : NSObject
-@property (copy, nonatomic) NSString *buttonTitle;
+@property (nonatomic, strong) KBNModel *kbnModel;
 @property (assign, nonatomic) BOOL isSelected;
-@property (copy, nonatomic) NSString *frontImagePath;
-@property (copy, nonatomic) NSString *behindImagePath;
-@property (copy, nonatomic) NSString *htmlPath;
-@property (nonatomic, strong) UIImage *frontImage;
-@property (nonatomic, strong) UIImage *behindImage;
 
--(firstTableModel *)initWithTitle:(NSString *)title frontImagePath:(NSString *)frontImagePath behindImagePath:(NSString *)behindImagePath isSelected:(BOOL)isSelected;
+- (firstTableModel *)initWithKBNModel:(KBNModel *)KBNModel;
 
 @end
 

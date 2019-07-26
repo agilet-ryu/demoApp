@@ -45,7 +45,7 @@
 - (void)initProgressBar {
     UIProgressView *p = [[ UIProgressView alloc] initWithFrame:CGRectMake(0, 64, [UIScreen mainScreen].bounds.size.width, 2)];
     p.trackTintColor = [UIColor lightGrayColor];
-    p.tintColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0];
+    p.tintColor = kBaseColor;
     [p setProgress:0.7 animated:NO];
     [self.view addSubview:p];
     
@@ -68,7 +68,7 @@
     sectionL.numberOfLines = 0;
     sectionL.text = @"スマートフォンのカメラで、顔画像を撮影します。\n背景に他人が写り込んでいない状況で撮影してください。";
     sectionL.font = [UIFont systemFontOfSize:[UITool shareUITool].textSizeMedium];
-    sectionL.textColor = [UIColor colorWithHexString:[UITool shareUITool].bodyTextColorHexString alpha:1.0f];
+    sectionL.textColor = kBodyTextColor;
     [self.view addSubview:sectionL];
     
     WKWebView *webView = [[WKWebView alloc] initWithFrame:CGRectMake(0,200,[UIScreen mainScreen].bounds.size.width,250)];
@@ -83,7 +83,7 @@
     [footBT setFrame:CGRectMake(16, [UIScreen mainScreen].bounds.size.height - 68, [UIScreen mainScreen].bounds.size.width - 32, 54)];
     [footBT setTitle:@"次へ" forState:UIControlStateNormal];
     [footBT addTarget:self action:@selector(goNextView) forControlEvents:UIControlEventTouchUpInside];
-    footBT.backgroundColor = [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0f];
+    footBT.backgroundColor = kBaseColor;
     footBT.layer.cornerRadius = 6.0f;
 //    footBT.layer.shadowOpacity = 0.15f;
 //    footBT.layer.shadowOffset = CGSizeMake(6, 6);

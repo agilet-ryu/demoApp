@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import "Config.h"
-
+#import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -18,17 +18,17 @@ NS_ASSUME_NONNULL_BEGIN
  共通領域名 : 本人確認内容データ
  */
 @interface IDENTIFICATION_DATA : NSObject
-@property (nonatomic, strong) NSString *IDENTIFICATION_DOCUMENT;  // 本人確認書類区分
-@property (nonatomic, strong) NSString *READ_METHOD;  // 読取方法
+@property (nonatomic, assign) int DOC_TYPE;  // 本人確認書類区分
+@property (nonatomic, assign) int GAIN_TYPE;  // 読取方法
 @property (nonatomic, strong) NSString *SDK_RESULT;  // "オンライン本人確認結果認証処理結果"
 @property (nonatomic, strong) NSString *RESULT;  // 顔照合結果
 @property (nonatomic, strong) NSString *SCORE;  // 照合スコア
 @property (nonatomic, strong) NSString *FAR;  //  他人受入率（FAR）
 @property (nonatomic, strong) NSString *FRR;  // 本人拒否入率（FRR）
-@property (nonatomic, strong) NSString *PHOTO_IMG;  // 照合画像１
-@property (nonatomic, strong) NSString *CAMERA_IMG;  // 照合画像２
-@property (nonatomic, strong) NSString *OBVERSE_IMG;  // 本人確認書類画像１
-@property (nonatomic, strong) NSString *REVERSE_IMG;  // 本人確認書類画像２
+@property (nonatomic, strong) UIImage *PHOTO_IMG;  // 照合画像１
+@property (nonatomic, strong) UIImage *CAMERA_IMG;  // 照合画像２
+@property (nonatomic, strong) UIImage *OBVERSE_IMG;  // 本人確認書類画像１
+@property (nonatomic, strong) UIImage *REVERSE_IMG;  // 本人確認書類画像２
 @property (nonatomic, strong) NSString *NAME;  // 氏名
 @property (nonatomic, strong) NSString *KANA;  // 氏名（カナ）
 @property (nonatomic, strong) NSString *ADDRESS;  // 住所
@@ -160,7 +160,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSString *BIZ_TOKEN;  // "顔照合認証トークンFaceID認証トークン"
 @property (nonatomic, strong) NSString *REQUEST_ID;  // リクエストID
 @property (nonatomic, strong) NSString *LOG_OUTPUT;  // 操作ログ書出回数
-@property (nonatomic, strong) NSString *OCR_REQUEST;  // OCRリクエスト回数
+@property (nonatomic, assign) int OCR_REQUEST;  // OCRリクエスト回数
 @property (nonatomic, assign) int MOTION_RETRY_COUNT;  // 顔モーションTry済み回数
 @property (nonatomic, assign) int VIDEO_OK_RETRY_COUNT;  //厚み撮影Try済み回数(OK)
 @property (nonatomic, assign) int VIDEO_NG_RETRY_COUNT;  //厚み撮影Try済み回数(NG)
@@ -213,6 +213,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) NSString *MAIN_ACCOUNT;  // 事業者ID
 @property (nonatomic, assign) int LOG_OUTPUT_LIMIT;  // 操作ログ書出回数上限
 @property (nonatomic, assign) int IMG_MASK;  // 本人確認書類画像マスクフラグ
+@property (nonatomic, assign) int SAVE_IMAGE_FLG;  // 画像保存フラグ
 @end
 
 #pragma mark - <#操作ログ#>
