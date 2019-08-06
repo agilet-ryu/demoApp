@@ -177,11 +177,12 @@ static NSString *const AES_IV_PARAMETER = @"e6db271db12d4d47";
 #pragma mark - SF-011_顔画像トリミング
 
 // OCRトリミング
-+ (NSString *)getFaceImageWithOCRImage:(UIImage *)image positionX1:(NSString *)positionX1 positionX2:(NSString *)positionX2 positionY1:(NSString *)positionY1 positionY2:(NSString *)positionY2{
-    int px1 = [positionX1 intValue];
-    int px2 = [positionX2 intValue];
-    int py1 = [positionY1 intValue];
-    int py2 = [positionY2 intValue];
++ (NSString *)getFaceImageWithOCRImage:(UIImage *)image{
+    InfoDatabase *db = [InfoDatabase shareInfoDatabase];
+    int px1 = [db.identificationData.POSITION_IMAGE_X1 intValue];
+    int px2 = [db.identificationData.POSITION_IMAGE_X2 intValue];
+    int py1 = [db.identificationData.POSITION_IMAGE_Y1 intValue];
+    int py2 = [db.identificationData.POSITION_IMAGE_Y2 intValue];
     
     int width = px2 - px1;
     int height = py2 - py1;
@@ -191,7 +192,7 @@ static NSString *const AES_IV_PARAMETER = @"e6db271db12d4d47";
     UIImage *trimmedImage = [UIImage imageWithCGImage:trimmedImageRef];
     NSData *imgDataFace = [[NSData alloc] initWithData:UIImageJPEGRepresentation(trimmedImage, 1.0f)];
     NSString *base64StrFace = [NSString stringWithFormat:@"%s %@","data:image/jpeg;base64,",[imgDataFace base64EncodedStringWithOptions:NSDataBase64Encoding76CharacterLineLength]];
-    [InfoDatabase shareInfoDatabase].identificationData.PHOTO_IMG = trimmedImage;
+    db.identificationData.PHOTO_IMG = trimmedImage;
     return base64StrFace;
 }
 
@@ -205,7 +206,6 @@ static NSString *const AES_IV_PARAMETER = @"e6db271db12d4d47";
     if (doc == idKBN.CARD_DRIVER.code) {
         trimArea = CGRectMake(image.size.width * 0.674, image.size.height * 0.279,
                               image.size.width * 0.296, image.size.height * 0.560);
-
     }
     if (doc == idKBN.CARD_MYNUMBER.code) {
         trimArea = CGRectMake(image.size.width * 0.046, image.size.height * 0.317,
@@ -240,6 +240,7 @@ static NSString *const AES_IV_PARAMETER = @"e6db271db12d4d47";
                 @"dl-expire" : iData.EXPIRATION,  // 有効期限
             //  @"dl-is-expired" : @"０００",   //
                 @"dl-number" : iData.NUMBER,  // 番号
+                @"dl-color-class" : iData.BAND_COLOR,
                 @"dl-sc" : iData.COMMISSION,      // 公安委員会
                 @"dl-condition1" : iData.CONDITION_1,   // 免許条件１
                 @"dl-condition2" : iData.CONDITION_2,   // 免許条件２

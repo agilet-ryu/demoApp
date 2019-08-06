@@ -162,10 +162,10 @@ static InfoDatabase *db = nil;
 
 #pragma mark - TODO
 // SF-010：サーバOCR
-- (void)getOCRMessageWithFile:(UIImage *)image andCurrentController:(UIViewController *)controller{
+- (void)getOCRMessageWithFile:(UIImage *)image{
     NSLog(@"getOCRMessageWithFile startTime = %@", [Utils getCurrentTime]);
     
-    //「本人確認書類画像」はオンライン本人確認ライブラリ内の共通鍵（ライブラリ内で定数管理）を使用して暗号化する
+    __weak typeof(self) weakSelf = self; //「本人確認書類画像」はオンライン本人確認ライブラリ内の共通鍵（ライブラリ内で定数管理）を使用して暗号化する
     NSData *AESData = [Utils aes_encryptWithImage:[UIImage imageNamed:@"OCR.jpg"]];
     
     // リクエストをオンライン本人確認サーバへ送信する。
@@ -175,6 +175,7 @@ static InfoDatabase *db = nil;
 
     } success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
         NSLog(@"getOCRMessageWithFile size = %lu endTime = %@", (unsigned long)AESData.length,[Utils getCurrentTime]);
+        
         NSString *decStr = [[NSString alloc] initWithData:responseObject encoding:NSUTF8StringEncoding];
         
         // OCR結果値をオンライン本人確認ライブラリ内の共通鍵（ライブラリ内で定数管理）を使用して復号化する。
@@ -183,41 +184,112 @@ static InfoDatabase *db = nil;
         NSDictionary *responseDic = [NSDictionary dictionaryWithDictionary:[Utils dictionaryWithJsonString:str]];
         
         NSString *errorCode = [NSString stringWithFormat:@"%@", responseDic[@"ERROR"]];
-        if (errorCode.length) {
-            if ([errorCode isEqualToString:@"EC10-002"]) {
-                
-                // 「SF-010：サーバOCR」返却結果「エラーコード」が「EC10-002」有効期限切れの場合、ポップアップにて「メッセージコード：SF-008-5E」を表示する。
-                [[ErrorManager shareErrorManager] dealWithErrorCode:@"EC10-002" msg:@"SF-008-5E" andController:controller];
-            } else {
-                
-                // 共通領域.本人確認内容データ.OCRリクエスト回数を1カウントアップする。
-                db.identificationData.OCR_REQUEST++;
-                
-                if (db.identificationData.OCR_REQUEST >= db.configFileData.OCR_LIMIT) {
+        NSString *resultCode = [NSString stringWithFormat:@"%@", responseDic[@"RESULT_CODE"]];
+        
+        if ([resultCode isEqualToString:@"0"]) {
+            
+            // OCR応答の「処理結果」が「0：成功」の場合、「OCR結果の有効期限確認」を実施する
+            int ocrCardCode;
+            int cardType = [responseDic[@"CARD_TYPE"] intValue];
+            switch (cardType) {
+                case -1:
+                    ocrCardCode = 9;
+                    break;
+                case 1:
+                    ocrCardCode = 9;
+                    break;
+                case 2:
+                    ocrCardCode = 2;
+                    break;
+                case 3:
+                    ocrCardCode = 2;
+                    break;
+                case 4:
+                    ocrCardCode = 1;
+                    break;
+                case 5:
+                    ocrCardCode = 4;
+                    break;
+                case 6:
+                    ocrCardCode = 5;
+                    break;
+                case 7:
+                    ocrCardCode = 1;
+                    break;
+                default:
+                    ocrCardCode = 9;
+                    break;
+            }
+            if (ocrCardCode == db.identificationData.DOC_TYPE) {
+                if ([responseDic[@"EXPIRATION_CHECK"] isEqualToString:@"0"]) {
                     
-                    // 共通領域.本人確認内容データ.OCRリクエスト回数＝共通領域.設定ファイルデータ.サーバOCRre-Try回数の場合、ポップアップにて「メッセージコード：CM-001-05E」を表示する。
-                    [[ErrorManager shareErrorManager] dealWithErrorCode:@"EC06-001" msg:@"CM-001-05E" andController:controller];
-                } else {
+                    // 「有効期限の妥当性」が 「0：妥当な認識処理である」の場合
+                    // 共通領域.設定ファイルデータ.xxx(各OCR項目名)の妥当性確認で「1：確認する」の項目が存在しない場合
+                    if ([self checkOCRStatus:responseDic]) {
+                        db.identificationData.NAME = responseDic[@"NAME"];
+                        db.identificationData.KANA = responseDic[@"KANA"];
+                        db.identificationData.ADDRESS = responseDic[@"ADDRESS"];
+                        db.identificationData.BIRTH = responseDic[@"BIRTH"];
+                        db.identificationData.PERMANENT_ADDRESS = responseDic[@"PERMANENT_ADDRESS"];
+                        db.identificationData.TYPE = responseDic[@"TYPE"];
+                        db.identificationData.BAND_COLOR = responseDic[@"BAND_COLOR"];
+                        db.identificationData.GENDER = responseDic[@"SEX"];
+                        db.identificationData.EXPIRATION = responseDic[@"EXPIRATION"];
+                        db.identificationData.ISSUANCE_DATE = responseDic[@"ISSUANCE_DATE"];
+                        db.identificationData.TYPE_NUM = responseDic[@"TYPE_NUM"];
+                        db.identificationData.CONDITION_1 = responseDic[@"CONDITION_1"];
+                        db.identificationData.CONDITION_2 = responseDic[@"CONDITION_2"];
+                        db.identificationData.CONDITION_3 = responseDic[@"CONDITION_3"];
+                        db.identificationData.CONDITION_4 = responseDic[@"CONDITION_4"];
+                        db.identificationData.DATE_NIKOGEN = responseDic[@"DATE_NIKOGEN"];
+                        db.identificationData.DATE_OTHER = responseDic[@"DATE_OTHER"];
+                        db.identificationData.DATE_SECOND = responseDic[@"DATE_SECOND"];
+                        db.identificationData.COMMISSION = responseDic[@"COMMISSION"];
+                        db.identificationData.NUMBER = responseDic[@"NUMBER"];
+                        db.identificationData.POSITION_IMAGE_X1 = responseDic[@"POSITION_IMAGE_X1"];
+                        db.identificationData.POSITION_IMAGE_X2 = responseDic[@"POSITION_IMAGE_X2"];
+                        db.identificationData.POSITION_IMAGE_Y1 = responseDic[@"POSITION_IMAGE_Y1"];
+                        db.identificationData.POSITION_IMAGE_Y2 = responseDic[@"POSITION_IMAGE_Y2"];
+                        if ([weakSelf.delegate respondsToSelector:@selector(getOCRResultSuccess)]) {
+                            [weakSelf.delegate getOCRResultSuccess];
+                        }
+                    } else{
+                        if ([weakSelf.delegate respondsToSelector:@selector(getOCRResultFailureWithErrorCode:)]) {
+                            [weakSelf.delegate getOCRResultFailureWithErrorCode:@"EC010-001"];
+                        }
+                    }
+                } else if ([responseDic[@"EXPIRATION_CHECK"] isEqualToString:@"1"]){
                     
-                    // 共通領域.本人確認内容データ.OCRリクエスト回数＜共通領域.設定ファイルデータ.サーバOCRre-Try回数の場合、ポップアップにて「メッセージコード：SF-006-01E」を表示する
-                    [[ErrorManager shareErrorManager] showWithErrorCode:@"SF-006-01E" atCurrentController:controller managerType:errorManagerTypeAlertClose addFirstMsg:@"" addSecondMsg:@""];
+                    // 「有効期限の妥当性」が 「1：項目が存在しない」の場合
+                    if ([self.delegate respondsToSelector:@selector(getOCRResultFailureWithErrorCode:)]) {
+                        [self.delegate getOCRResultFailureWithErrorCode:@"EC010-001"];
+                    }
+                } else if ([responseDic[@"EXPIRATION_CHECK"] isEqualToString:@"2"]){
+                    
+                    // 「有効期限の妥当性」が 「2：妥当な認識結果でない」の場合
+                    if ([self.delegate respondsToSelector:@selector(getOCRResultFailureWithErrorCode:)]) {
+                        [self.delegate getOCRResultFailureWithErrorCode:@"EC010-002"];
+                    }
                 }
+            }else{
+                
+#warning TODO 拍照和所选书类不一致时
+                [[ErrorManager shareErrorManager] showWithErrorCode:@"" atCurrentController:[UIViewController new] managerType:errorManagerTypeAlertClose addFirstMsg:@"" addSecondMsg:@""];
             }
         } else {
             
-            // 「SF-010：サーバOCR」返却結果「エラーコード」が未設定の場合、 共通領域.本人確認内容データ.OCRリクエスト回数を1カウントアップする。
-            db.identificationData.OCR_REQUEST++;
-            
-            // 「SF-011：顔画像トリミング」を呼び出す
-            [Utils getFaceImageWithOCRImage:image positionX1:responseDic[@"POSITION_IMAGE_X1"] positionX2:responseDic[@"POSITION_IMAGE_X2"] positionY1:responseDic[@"POSITION_IMAGE_Y1"] positionY2:responseDic[@"POSITION_IMAGE_Y2"]];
-            
-            // 「G0160-01：OCR結果表示画面」へ遷移する。
-            
+            // OCR応答の「処理結果」が「1：失敗」の場合
+            NSString *code = errorCode.length ? errorCode : @"EC010-001";
+            if ([self.delegate respondsToSelector:@selector(getOCRResultFailureWithErrorCode:)]) {
+                [self.delegate getOCRResultFailureWithErrorCode:code];
+            }
         }
     } failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
         
-        // 「SF-010：サーバOCR」返却結果「エラーコード」が通信エラーの場合、ポップアップにて「メッセージコード：CM-001-05E」を表示する。
-        [[ErrorManager shareErrorManager] showWithErrorCode:@"CM-001-05E" atCurrentController:controller managerType:errorManagerTypeAlertClose addFirstMsg:@"" addSecondMsg:@""];
+        // 「SF-010：サーバOCR」返却結果「エラーコード」が通信エラーの場合
+        if ([weakSelf.delegate respondsToSelector:@selector(getOCRResultNetFailure)]) {
+            [weakSelf.delegate getOCRResultNetFailure];
+        }     
     }];
 }
 
@@ -239,7 +311,144 @@ static InfoDatabase *db = nil;
     }];
 }
 
-
+- (BOOL)checkOCRStatus:(NSDictionary *)responseDic{
+    InfoDatabase *infoData = [InfoDatabase shareInfoDatabase];
+    CONFIG_FILE_DATA *db = infoData.configFileData;
+    if (db.CHECK_OCR_STATUS_1 == 1) {
+        
+        // 氏名の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_2 == 1){
+        
+        // // 氏名（カナ）の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_3 == 1){
+        
+        // 住所の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_4 == 1){
+        
+        // 生年月日の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_5 == 1){
+        
+        // 本籍地の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_6 == 1){
+        
+        // 運転免許種類の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_7 == 1){
+        
+        // 有効期限帯色の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_8 == 1){
+        
+        // 性別の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_9 == 1){
+        
+        // 交付日の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_10 == 1){
+        
+        // 免許種類の枠数の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_11 == 1){
+        
+        // 免許の条件等1の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_12 == 1){
+        
+        // 免許の条件等2の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_13 == 1){
+        
+        // 免許の条件等3の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_14 == 1){
+        
+        // 免許の条件等4の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_15 == 1){
+        
+        // 取得日（二・小・原）の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_16 == 1){
+        
+        // 取得日（他）の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_17 == 1){
+        
+        // 取得日（二種）の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_18 == 1){
+        
+        // 公安委員会の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    if (db.CHECK_OCR_STATUS_19 == 1){
+        
+        // 運転免許証番号の妥当性確認
+        if (![responseDic[@"NAME_CHECK"] isEqualToString:@"0"]) {
+            return NO;
+        }
+    }
+    return YES;
+}
 
 
 
@@ -279,6 +488,7 @@ static InfoDatabase *db = nil;
     NSString *url = [NSString stringWithFormat:@"%@%@&imgFile1=%@", kTest, [self testParam], temp];
   //  NSString *url = [NSString stringWithFormat:@"%@%@&imgFile1=", kTest, [self testParam]];
     NSLog(@"aes_decryptWithBase64String  -= %@", [Utils aes_decryptWithBase64String:[self testParam]]);
+    
     [sessionManager POST:url parameters:nil headers:nil constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
         [formData appendPartWithFileData:[NSData new] name:@"imgFile2" fileName:@"imgFile2" mimeType:@"image/jpeg"];
         [formData appendPartWithFileData:[NSData new] name:@"videoFile" fileName:@"videoFile" mimeType:@"video/mp4"];

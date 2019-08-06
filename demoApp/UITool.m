@@ -33,7 +33,7 @@ static UITool *tool;
         _inputTextColorHexString = @"706f67";
         _textSizeLarge = 22.0f;
         _textSizeMedium = 18.0f;
-        _textSizeSmall = 14.0f;
+        _textSizeSmall = 16.0f;
         _textSizeMicro = 12.0f;
         _lineWidth = 2.0f;
     }

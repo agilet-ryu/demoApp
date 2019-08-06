@@ -35,7 +35,7 @@ static AFHTTPSessionManager* sessionManager = nil;
 }
 
 - (void)getBizTokenWithImage:(UIImage *)image viewController:(UIViewController *)viewController{
-     NSData *data = UIImageJPEGRepresentation([UIImage imageNamed:@"face"], 0.7);
+     NSData *data = UIImageJPEGRepresentation([UIImage imageNamed:@"facjkje"], 0.7);
     [sessionManager.requestSerializer setValue:@"multipart/form-data; charset=utf-8; boundary=__X_PAW_BOUNDARY__" forHTTPHeaderField:@"Content-Type"];
     NSMutableDictionary* params = [[NSMutableDictionary alloc] initWithDictionary:@{@"sign" : [self getFaceIDSignStr],
                                                                                     @"sign_version" : [self getFaceIDSignVersionStr],
@@ -51,9 +51,10 @@ constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
 }
                 progress:nil
                  success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                     NSLog(@"signStr signStr signStr =~=~=~=~=~=~=~=~=~=~~=~=~=   %@",responseObject);
                      if (responseObject && [[responseObject allKeys] containsObject:@"biz_token"] && [responseObject objectForKey:@"biz_token"]) {
                          NSString *bizTokenStr = [responseObject objectForKey:@"biz_token"];
-                         NSLog(@"getBizTokenWithImage  bizTokenStr bizTokenStr bizTokenStr =~=~=~=~=~=~=~=~=~=~~=~=~=   %@",bizTokenStr);
+
                          if ([weakSelf.delegate respondsToSelector:@selector(getBizTokenSuccuss:)]) {
                              [weakSelf.delegate getBizTokenSuccuss:bizTokenStr];
                          }
@@ -101,7 +102,6 @@ constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
 }
 
 - (void)startVerifyWitBizToken:(NSString *)bizTokenStr data:(NSData *)deltaData{
-    NSLog(@"startVerifyWitBizToken  bizTokenStr bizTokenStr bizTokenStr =~=~=~=~=~=~=~=~=~=~~=~=~=   %@",bizTokenStr);
     [sessionManager.requestSerializer setValue:@"multipart/form-data; charset=utf-8; boundary=__X_PAW_BOUNDARY__" forHTTPHeaderField:@"Content-Type"];
     NSMutableDictionary* params = [[NSMutableDictionary alloc] initWithDictionary:@{@"sign" : [self getFaceIDSignStr],
                                                                                     @"sign_version" : [self getFaceIDSignVersionStr],
@@ -145,7 +145,6 @@ constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
     NSMutableData* data = [[NSMutableData alloc] initWithData:HMAC];
     [data appendData:sign_raw_data];
     NSString* signStr = [data base64EncodedStringWithOptions:0];
-    NSLog(@"signStr signStr signStr =~=~=~=~=~=~=~=~=~=~~=~=~=   %@",signStr);
     return signStr;
 }
 

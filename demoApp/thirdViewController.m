@@ -8,15 +8,17 @@
 
 #import "thirdViewController.h"
 #import "UITool.h"
+#import "Utils.h"
 #import "fouthViewController.h"
-#import "faceIDManager.h"
+#import "getFaceIDToken.h"
 #import "CameraScanManager.h"
 #import "hudView.h"
 #import "OCRResultViewController.h"
 #import "InfoDatabase.h"
 #import "NetWorkManager.h"
+#import "service/SF-101/AppComLog.h"
 
-@interface thirdViewController ()<faceIDManagerDelegate, cameraScanManagerDelegate>
+@interface thirdViewController ()<getFaceIDTokenDelegate, cameraScanManagerDelegate, NetWorkManagerDelegate>
 
 @property (nonatomic, strong) UIButton *nextBT;
 @property (nonatomic, assign) BOOL isFront;
@@ -34,8 +36,16 @@
 
 @implementation thirdViewController
 
+static InfoDatabase *db = nil;
+
 - (CameraScanManager *)cameraScanManager{
     if (!_cameraScanManager) {
+        
+        // 操作ログ編集
+        [AppComLog writeEventLog:@"カメラスキャンの初期化処理" viewID:@"G0060-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+            
+        } atController:self];
+        
         _cameraScanManager = [CameraScanManager sharedCameraScanManager];
         _cameraScanManager.delegate = self;
     }
@@ -44,6 +54,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    db = [InfoDatabase shareInfoDatabase];
     [self initView];
     [self initScrollView];
     [self initProgressBar];
@@ -81,7 +92,6 @@
     self.view.backgroundColor = [UIColor whiteColor];
     self.title = @"撮影結果の確認";
     
-    BOOL imgCropping = [[InfoDatabase shareInfoDatabase].identificationData.IMG_CROPPING isEqualToString:@"2"];
     UIButton *footBT = [UIButton buttonWithType:UIButtonTypeCustom];
     [footBT setFrame:CGRectMake(16, [UIScreen mainScreen].bounds.size.height - 68, [UIScreen mainScreen].bounds.size.width - 32, 54)];
     [footBT setTitle:@"次へ" forState:UIControlStateNormal];
@@ -92,15 +102,20 @@
 //    footBT.layer.shadowOffset = CGSizeMake(6, 6);
     footBT.layer.masksToBounds = NO;
     
-    // 共通領域.本人確認内容データ.本人確認書類切り出し状態1が「0:切り出し済み」の場合、非活性状態とする、「2:未切り出し」の場合、非表示状態とする。、
-    imgCropping ? [footBT setHidden:YES] : [footBT setUserInteractionEnabled:NO];
+    // 共通領域.本人確認内容データ.本人確認書類切り出し状態1が「0:切り出し済み」の場合、非活性状態とする、「2:未切り出し」の場合、非表示状態とする。
+    
+    if ([self.currentModel.kbnModel.STM1 isEqualToString:@"2"]) {
+        (db.identificationData.IMG_CROPPING1 && db.identificationData.IMG_CROPPING2) ? [footBT setHidden:YES] : [footBT setUserInteractionEnabled:NO];
+    }else{
+        db.identificationData.IMG_CROPPING1 ? [footBT setHidden:YES] : [footBT setUserInteractionEnabled:NO];
+    }
+
     [self.view addSubview:footBT];
     self.nextBT = footBT;
 }
 
 - (void)initScrollView{
     IDENTIFICATION_DATA *iData = [InfoDatabase shareInfoDatabase].identificationData;
-    BOOL imgCropping = [iData.IMG_CROPPING isEqualToString:@"2"];
     
     UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:CGRectMake(0, 64, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height - 132)];
     scrollView.showsVerticalScrollIndicator = NO;
@@ -111,7 +126,12 @@
     sectionL.textAlignment = NSTextAlignmentLeft;
     
     // 共通領域.本人確認内容データ.本人確認書類切り出し状態1を判断し、撮影結果書類の確認案内メッセージを表示する
-    sectionL.text = imgCropping ? @"書類撮影の結果、書類の切り出し範囲が適切でないため、再撮影してください。" : @"撮影画像をご確認いただき、不鮮明な場合や上下反転している場合は再撮影してください。問題がなければ、確認チェックボックスにチェックを入れてください。" ;
+    if ([self.currentModel.kbnModel.STM1 isEqualToString:@"2"]) {
+        sectionL.text = (iData.IMG_CROPPING1 && iData.IMG_CROPPING2) ? @"撮影画像をご確認いただき、不鮮明な場合や上下反転している場合は再撮影してください。問題がなければ、確認チェックボックスにチェックを入れてください。" : @"書類撮影の結果、書類の切り出し範囲が適切でないため、再撮影してください。";
+    }else{
+        sectionL.text = iData.IMG_CROPPING1 ? @"撮影画像をご確認いただき、不鮮明な場合や上下反転している場合は再撮影してください。問題がなければ、確認チェックボックスにチェックを入れてください。" : @"書類撮影の結果、書類の切り出し範囲が適切でないため、再撮影してください。";
+    }
+
     sectionL.font = [UIFont systemFontOfSize:[UITool shareUITool].textSizeMedium];
     sectionL.textColor = kBodyTextColor;
     [scrollView addSubview:sectionL];
@@ -142,7 +162,7 @@
     [scrollView addSubview:check1];
     
     // 共通領域.本人確認内容データ.本人確認書類切り出し状態1が「2:未切り出し」の場合、非表示状態とする
-    check1.hidden = imgCropping;
+    check1.hidden = !iData.IMG_CROPPING1;
     self.checkbox1 = check1;
     
     UIButton *BT1 = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -169,14 +189,12 @@
         backTitle.text = [NSString stringWithFormat:@"裏面"];
         backTitle.font = [UIFont systemFontOfSize:[UITool shareUITool].textSizeMedium];
         [scrollView addSubview:backTitle];
-        backTitle.hidden = imgCropping;
         self.backTitle = backTitle;
         
         UIImageView *img2 = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"pic4"]];
         [img2 setImage:iData.REVERSE_IMG];
         [img2 setFrame:CGRectMake(40, 530, [UIScreen mainScreen].bounds.size.width - 80, 200)];
         [scrollView addSubview:img2];
-        img2.hidden = imgCropping;
         self.img2 = img2;
         
         UIButton *check = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -188,7 +206,7 @@
         [check setTitle:@"確認しました。" forState:UIControlStateNormal];
         check.contentHorizontalAlignment = UIControlContentHorizontalAlignmentLeft;
         [scrollView addSubview:check];
-        check.hidden = imgCropping;
+        check.hidden = !iData.IMG_CROPPING2;
         self.checkbox2 = check;
         
         UIButton *BT2 = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -205,7 +223,6 @@
         
         BT2.userInteractionEnabled = !check.isSelected;
         [scrollView addSubview:BT2];
-        BT2.hidden = imgCropping;
         self.camera2 = BT2;
     }
 
@@ -215,12 +232,23 @@
 #pragma mark - 再摄影点击时
 - (void)didBT1Click{
     
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"再撮影ボタン" viewID:@"G0060-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self];
+    
     // 再撮影ボタンタップ、カメラスキャンの関数_setConfigメソッドを呼び出し、カメラスキャンの設定を更新する。
     self.cameraScanManager.delegate = self;
     self.isFront = YES;
 }
 
 - (void)didBT2Click{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"再撮影ボタン" viewID:@"G0060-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self];
+    
     // 再撮影ボタンタップ、カメラスキャンの関数_setConfigメソッドを呼び出し、カメラスキャンの設定を更新する。
     self.cameraScanManager.delegate = self;
     self.isFront = NO;
@@ -233,7 +261,23 @@
     [self startCamera];
 }
 
+// カメラスキャン起動
+- (void)startCamera{
+    [self.cameraScanManager start];
+    for (UIView *v in self.view.subviews) {
+        v.hidden = YES;
+    }
+    [self.navigationController setNavigationBarHidden:YES animated:NO];
+    self.view.backgroundColor = [UIColor blackColor];
+}
+
+// 書類の認識成功時に呼び出されます。
 - (void)cameraScanSuccessWithImage:(UIImage *)image andCropResult:(NSInteger)cropResult{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"カメラスキャン終了処理" viewID:@"G0050-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self];
     
     // カメラスキャンの関数_deinitResourceメソッドを呼び出す。
     [self.cameraScanManager deinitResource];
@@ -245,7 +289,8 @@
         // 撮影回数＜指定回数分の場合
         // カメラスキャンより返却された撮影結果画像を共通領域へ設定する
         db.identificationData.OBVERSE_IMG = image;
-        db.identificationData.IMG_CROPPING = [NSString stringWithFormat:@"%ld", (long)cropResult];
+        db.identificationData.IMG_CROPPING1 = cropResult == 0;
+        self.checkbox1.hidden = !db.identificationData.IMG_CROPPING1;
         
         // 書類撮影結果（表面）画像を再撮影画像に差し替える。
         [self.img1 setImage:image];
@@ -254,34 +299,32 @@
         // 撮影回数＝指定回数分の場合
         // カメラスキャンより返却された撮影結果画像を共通領域へ設定する
         db.identificationData.REVERSE_IMG = image;
-        db.identificationData.IMG_CROPPING = [NSString stringWithFormat:@"%ld", (long)cropResult];
+        db.identificationData.IMG_CROPPING2 = cropResult == 0;
+        self.checkbox2.hidden = !db.identificationData.IMG_CROPPING2;
         
         // 書類撮影結果（裏面）画像を再撮影画像に差し替える。
         [self.img2 setImage:image];
     }
-    
 
 #warning TODO 共通領域.本人確認内容データ.本人確認書類切り出し状態1を判断し、撮影結果書類の確認案内メッセージを表示する※ 詳細は「出力編集仕様」参照
-    BOOL imgCropping = [[InfoDatabase shareInfoDatabase].identificationData.IMG_CROPPING isEqualToString:@"2"];
-    
     // 共通領域.本人確認内容データ.本人確認書類切り出し状態1を判断し、撮影結果書類の確認案内メッセージを表示する
-    self.detailLabel.text = imgCropping ? @"書類撮影の結果、書類の切り出し範囲が適切でないため、再撮影してください。" : @"撮影画像をご確認いただき、不鮮明な場合や上下反転している場合は再撮影してください。問題がなければ、確認チェックボックスにチェックを入れてください。" ;
-    
-    // 共通領域.本人確認内容データ.本人確認書類切り出し状態1が「2:未切り出し」の場合、非表示状態とする
-    self.checkbox1.hidden = imgCropping;
+    // 共通領域.本人確認内容データ.本人確認書類切り出し状態が「2:未切り出し」の場合、非表示状態とする
     if ([self.currentModel.kbnModel.STM1 isEqualToString:@"2"]) {
-        self.backTitle.hidden = imgCropping;
-        self.img2.hidden = imgCropping;
-        self.checkbox2.hidden = imgCropping;
-        self.camera2.hidden = imgCropping;
+        (db.identificationData.IMG_CROPPING1 && db.identificationData.IMG_CROPPING2) ? [self.nextBT setHidden:YES] : [self.nextBT setUserInteractionEnabled:NO];
+        self.detailLabel.text = (db.identificationData.IMG_CROPPING1 && db.identificationData.IMG_CROPPING2) ? @"撮影画像をご確認いただき、不鮮明な場合や上下反転している場合は再撮影してください。問題がなければ、確認チェックボックスにチェックを入れてください。" : @"書類撮影の結果、書類の切り出し範囲が適切でないため、再撮影してください。";
+    }else{
+        db.identificationData.IMG_CROPPING1 ? [self.nextBT setHidden:YES] : [self.nextBT setUserInteractionEnabled:NO];
+        self.detailLabel.text = db.identificationData.IMG_CROPPING1 ? @"撮影画像をご確認いただき、不鮮明な場合や上下反転している場合は再撮影してください。問題がなければ、確認チェックボックスにチェックを入れてください。" : @"書類撮影の結果、書類の切り出し範囲が適切でないため、再撮影してください。";
     }
-    
-    // 共通領域.本人確認内容データ.本人確認書類切り出し状態1が「0:切り出し済み」の場合、非活性状態とする、「2:未切り出し」の場合、非表示状態とする。、
-    imgCropping ? [self.nextBT setHidden:YES] : [self.nextBT setUserInteractionEnabled:NO];
 }
 
 // プレビュー／認識中に何らかのエラーが発生した場合に呼び出されます。
 - (void)cameraScanFailure:(NSInteger)errorCode{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"カメラスキャン終了処理" viewID:@"G0050-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self];
     
     // カメラスキャン初期化またはカメラスキャン起動にてエラーが返却された場合、ポップアップでエラー内容に応じたメッセージを表示する。
     // ポップアップには「はい」ボタンのみ表示し、ライブラリにてエラー発生処理のリトライ等は実施しない。
@@ -298,21 +341,38 @@
 
 // キャンセルボタンを押す時に呼び出されます。
 - (void)cameraScanCancel{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"キャンセル" viewID:@"G0050-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self];
+    
     // カメラスキャンの関数_deinitResourceメソッドを呼び出す。
     [self.cameraScanManager deinitResource];
 }
 
-- (void)startCamera{
-    [self.cameraScanManager start];
+// カメラスキャン起動成功時に呼び出されます。
+- (void)cameraScanStart{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"カメラスキャン起動" viewID:@"G0050-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self];
+    
     for (UIView *v in self.view.subviews) {
-        v.hidden = YES;
+        v.hidden = NO;
     }
-    [self.navigationController setNavigationBarHidden:YES animated:NO];
-    self.view.backgroundColor = [UIColor blackColor];
+    [self.navigationController setNavigationBarHidden:NO animated:NO];
+    self.view.backgroundColor = [UIColor whiteColor];
 }
 
 #pragma mark - 次処理へ遷移
 - (void)goNextView{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"次へボタン" viewID:@"G0060-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self];
     hudView *hud = [[hudView alloc] initWithModel:nil andController:nil];
     [hud show];
     self.myHudView = hud;
@@ -331,31 +391,120 @@
             
             // 共通領域.本人確認内容データ.OCRリクエスト回数＝共通領域.設定ファイルデータ.サーバOCRre-Try回数の場合、ポップアップにて「メッセージコード：CM-001-05E」を表示する。
             [[ErrorManager shareErrorManager] dealWithErrorCode:@"EC06-001" msg:@"CM-001-05E" andController:self];
-            
         } else {
+            
+            // 操作ログ編集
+            [AppComLog writeEventLog:@"SF-010サーバOCR" viewID:@"G0060-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+                
+            } atController:self];
+            
             // 共通領域.本人確認内容データ.OCRリクエスト回数＜共通領域.設定ファイルデータ.サーバOCRre-Try回数の場合、「SF-010：サーバOCR」を呼び出す。
-            [[NetWorkManager shareNetWorkManager] getOCRMessageWithFile:iData.OBVERSE_IMG andCurrentController:self];
+            NetWorkManager *net = [NetWorkManager shareNetWorkManager];
+            net.delegate = self;
+            [net getOCRMessageWithFile:iData.OBVERSE_IMG];
         }
     } else{
         
         // 共通領域.設定ファイルデータ.OCR機能有効化フラグ＝ 0:無効の場合、
+        
+        // 操作ログ編集
+        [AppComLog writeEventLog:@"SF-011顔画像トリミング" viewID:@"G0060-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+            
+        } atController:self];
+        
         // 「SF-011：顔画像トリミング」を呼び出す。
-        UIImage *face = [Utils getFaceImageWithCameraScanImage:iData.OBVERSE_IMG];
+        [Utils getFaceImageWithCameraScanImage:iData.OBVERSE_IMG];
+        
+        // 操作ログ編集
+        [AppComLog writeEventLog:@"SF-104FaceIDトークン取得" viewID:@"G0060-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+            
+        } atController:self];
         
         // 「SF-104：FaceIDトークン取得」を呼び出す。
-        [[faceIDManager sharedFaceIDManager] getBizTokenWithImage:face viewController:self];
+        getFaceIDToken *service = [getFaceIDToken initService];
+        service.delegate = self;
+        [service sendGetFaceIDTokenRequest];
     }
 }
 
-- (void)goToOCRView{
+#pragma mark - getFaceIDTokenDelegate
+
+/**
+ 顔照合認証応答
+ 
+ @param resultCode 処理結果
+ @param errorCode エラーコード
+ */
+- (void)getFaceIDResultCode:(NSString *)resultCode errorCode:(NSString *)errorCode{
+    if ([resultCode isEqualToString:@"1"]) {
+        
+        // 処理正常時
+        
+        // 「G0100-01：自然人検知開始前画面」へ遷移する。
+        fouthViewController *f = [[fouthViewController alloc] init];
+        [self.navigationController pushViewController:f animated:YES];
+    }else{
+        
+        // 処理異常時
+        if ([errorCode isEqualToString:@"ES00-401"]) {
+            
+            // 照合画像エラー時、「メッセージコード：CM-001-07E」を表示する
+            [[ErrorManager shareErrorManager] showWithErrorCode:@"CM-001-07E" atCurrentController:self managerType:errorManagerTypeAlertClose addFirstMsg:@"" addSecondMsg:@""];
+        } else {
+            
+            // 通信エラー時、「メッセージコード：CM-001-02E」を表示する。
+            [[ErrorManager shareErrorManager] showWithErrorCode:@"CM-001-02E" atCurrentController:self managerType:errorManagerTypeAlertClose addFirstMsg:@"" addSecondMsg:@""];
+        }
+    }
+}
+
+#pragma mark - NetWorkManagerDelegate
+
+- (void)getOCRResultFailureWithErrorCode:(NSString *)errorcode{
     
-    // OCR処理が有効時、「SF-010：サーバOCR」機能を呼出し、「G0160-01：OCR結果表示画面」に遷移する。
+    InfoDatabase *db = [InfoDatabase shareInfoDatabase];
+    if ([errorcode isEqualToString:@"EC10-002"]) {
+        
+        // 「SF-010：サーバOCR」返却結果「エラーコード」が「EC10-002」有効期限切れの場合、ポップアップにて「メッセージコード：SF-008-5E」を表示する。
+        [[ErrorManager shareErrorManager] dealWithErrorCode:@"EC10-002" msg:@"SF-008-5E" andController:self];
+    } else {
+        
+        // 共通領域.本人確認内容データ.OCRリクエスト回数を1カウントアップする。
+        db.identificationData.OCR_REQUEST++;
+        
+        if (db.identificationData.OCR_REQUEST >= db.configFileData.OCR_LIMIT) {
+            
+            // 共通領域.本人確認内容データ.OCRリクエスト回数＝共通領域.設定ファイルデータ.サーバOCRre-Try回数の場合、ポップアップにて「メッセージコード：CM-001-05E」を表示する。
+            [[ErrorManager shareErrorManager] dealWithErrorCode:@"EC06-001" msg:@"CM-001-05E" andController:self];
+        } else {
+            
+            // 共通領域.本人確認内容データ.OCRリクエスト回数＜共通領域.設定ファイルデータ.サーバOCRre-Try回数の場合、ポップアップにて「メッセージコード：SF-006-01E」を表示する
+            [[ErrorManager shareErrorManager] showWithErrorCode:@"SF-006-01E" atCurrentController:self managerType:errorManagerTypeAlertClose addFirstMsg:@"" addSecondMsg:@""];
+        }
+    }
+}
+
+- (void)getOCRResultSuccess{
+    InfoDatabase *db = [InfoDatabase shareInfoDatabase];
+    // 「SF-010：サーバOCR」返却結果「エラーコード」が未設定の場合、 共通領域.本人確認内容データ.OCRリクエスト回数を1カウントアップする。
+    db.identificationData.OCR_REQUEST++;
+    
+    // 「SF-011：顔画像トリミング」を呼び出す
+    [Utils getFaceImageWithOCRImage:db.identificationData.OBVERSE_IMG];
+    
+    // 「G0160-01：OCR結果表示画面」へ遷移する。
     OCRResultViewController *ocr = [[OCRResultViewController alloc] init];
     ocr.currentModel = self.currentModel;
+    ocr.jsStr = [Utils getHtmlParam];
     [self.myHudView hide];
     [self.navigationController pushViewController:ocr animated:YES];
+}
+
+// 「SF-010：サーバOCR」返却結果「エラーコード」が通信エラーの場合
+- (void)getOCRResultNetFailure{
     
-    // OCR処理が無効時、「SF-011：顔画像トリミング」機能および、「SF-104：FaceIDトークン取得」機能を呼出し、「G0100-01：自然人検知開始前画面」に遷移する。
+    // ポップアップにて「メッセージコード：CM-001-05E」を表示する。
+    [[ErrorManager shareErrorManager] showWithErrorCode:@"CM-001-05E" atCurrentController:self managerType:errorManagerTypeAlertClose addFirstMsg:@"" addSecondMsg:@""];
 }
 
 #pragma mark - checkbox点击时

@@ -26,7 +26,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSString *FAR;  //  他人受入率（FAR）
 @property (nonatomic, strong) NSString *FRR;  // 本人拒否入率（FRR）
 @property (nonatomic, strong) UIImage *PHOTO_IMG;  // 照合画像１
-@property (nonatomic, strong) UIImage *CAMERA_IMG;  // 照合画像２
+@property (nonatomic, strong) NSData *CAMERA_IMG;  // 照合画像２
 @property (nonatomic, strong) UIImage *OBVERSE_IMG;  // 本人確認書類画像１
 @property (nonatomic, strong) UIImage *REVERSE_IMG;  // 本人確認書類画像２
 @property (nonatomic, strong) NSString *NAME;  // 氏名
@@ -49,6 +49,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSString *DATE_OTHER;  // 取得日（他）
 @property (nonatomic, strong) NSString *DATE_SECOND;  // 取得日（二種）
 @property (nonatomic, strong) NSString *COMMISSION;  // 公安委員会
+@property (nonatomic, strong) NSString *POSITION_IMAGE_X1;  // 「顔写真位置情報(LT_X)」
+@property (nonatomic, strong) NSString *POSITION_IMAGE_Y1;  // 「顔写真位置情報(LT_Y)」
+@property (nonatomic, strong) NSString *POSITION_IMAGE_X2;  // 「顔写真位置情報(RB_X)」
+@property (nonatomic, strong) NSString *POSITION_IMAGE_Y2;  // 「顔写真位置情報(RB_Y」
 @property (nonatomic, strong) NSString *COMMON_NAME;  // NFC_運_通称名
 @property (nonatomic, strong) NSString *UNIFY_NAME;  // NFC_運_統一氏名（カナ）
 @property (nonatomic, strong) NSString *REFERENCE_NUMBER;  // NFC_運_照会番号
@@ -151,7 +155,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSString *LATITUDE;  // 位置情報（緯度）
 @property (nonatomic, strong) NSString *LONGITUDE;  // 位置情報（経度）
 @property (nonatomic, strong) NSString *ERROR_CODE;  // エラーコード
-@property (nonatomic, strong) NSString *IMG_CROPPING;  // 本人確認書類切り出し状態1
+@property (nonatomic, assign) BOOL IMG_CROPPING1;  // 本人確認書類切り出し状態1
+@property (nonatomic, assign) BOOL IMG_CROPPING2;  // 本人確認書類切り出し状態2
 @property (nonatomic, strong) NSString *PHOTO_POSITION;  // 顔写真位置情報
 @property (nonatomic, strong) NSString *THICKNESS_VIDEO;  // 厚み撮影動画
 @property (nonatomic, strong) NSString *FACEID_SIGNATURE;  // FaceID電子署名
@@ -159,7 +164,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSString *EXPIRATION_DATE;  // 有効期限判定用日付
 @property (nonatomic, strong) NSString *BIZ_TOKEN;  // "顔照合認証トークンFaceID認証トークン"
 @property (nonatomic, strong) NSString *REQUEST_ID;  // リクエストID
-@property (nonatomic, strong) NSString *LOG_OUTPUT;  // 操作ログ書出回数
+@property (nonatomic, assign) int LOG_OUTPUT;  // 操作ログ書出回数
 @property (nonatomic, assign) int OCR_REQUEST;  // OCRリクエスト回数
 @property (nonatomic, assign) int MOTION_RETRY_COUNT;  // 顔モーションTry済み回数
 @property (nonatomic, assign) int VIDEO_OK_RETRY_COUNT;  //厚み撮影Try済み回数(OK)
@@ -214,41 +219,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, assign) int LOG_OUTPUT_LIMIT;  // 操作ログ書出回数上限
 @property (nonatomic, assign) int IMG_MASK;  // 本人確認書類画像マスクフラグ
 @property (nonatomic, assign) int SAVE_IMAGE_FLG;  // 画像保存フラグ
-@end
-
-#pragma mark - <#操作ログ#>
-/**
- ログ種別
-
- - LogTypeOperation: 操作ログ
- - LogTypeException: 例外ログ
- */
-typedef NS_ENUM(NSInteger, LOGTYPE) {
-    LogTypeOperation,
-    LogTypeException,
-};
-
-/**
- ログレベル
-
- - LogLevelInformation: インフォーメーション
- - LogLevelError: エラー
- */
-typedef NS_ENUM(NSInteger, LOGLEVEL) {
-    LogLevelInformation,
-    LogLevelError,
-};
-
-/**
- 共通領域ID : C-CD-004
- 共通領域名 : 操作ログ
- */
-@interface EVENT_LOG : NSObject
-@property (nonatomic, strong) NSString *LOG_OUTPUT_TIME; // ログ出力日時
-@property (nonatomic, strong) NSString *LOG_TYPE;  // ログ種別
-@property (nonatomic, strong) NSString *LOG_LEVEL;  // ログレベル
-@property (nonatomic, strong) NSString *SCREEN_ID;  // 画面ID
-@property (nonatomic, strong) NSString *LOG_TEXT;  // ログテキスト
 @end
 
 #pragma mark - <#共通領域のデータ#>

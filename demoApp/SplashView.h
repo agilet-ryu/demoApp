@@ -1,8 +1,8 @@
 //
-//  fouthViewController.h
+//  SplashView.h
 //  demoApp
 //
-//  Created by agilet on 2019/06/19.
+//  Created by agilet-ryu on 2019/7/31.
 //  Copyright © 2019 fujitsu. All rights reserved.
 //
 
@@ -10,7 +10,8 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface fouthViewController : UIViewController
+@interface SplashView : UIView
+
 @end
 
 NS_ASSUME_NONNULL_END

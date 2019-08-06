@@ -144,6 +144,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (nonatomic, strong) NSString *LATITUDE;  // 位置情報（緯度）
 @property (nonatomic, strong) NSString *LONGITUDE;  // 位置情報（経度）
 @property (nonatomic, strong) NSString *ERROR_CODE;  // エラーコード
+
++ (instancetype)shareResultModel;
 @end
 
 NS_ASSUME_NONNULL_END

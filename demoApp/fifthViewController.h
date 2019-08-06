@@ -11,8 +11,6 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface fifthViewController : UIViewController
-@property (nonatomic, strong) NSData *data;
-@property (nonatomic, strong) NSString *bizToken;
 @end
 
 NS_ASSUME_NONNULL_END

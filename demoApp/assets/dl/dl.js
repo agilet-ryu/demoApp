@@ -59,10 +59,10 @@ function render(json) {
     if ('dl-color-class' in data) {
         var color;
         var display;
-        if (data['dl-color-class'] == '優良') {
+        if (data['dl-color-class'] == '金') {
             color = 'dl-color-gold';
             display = 'inline';
-        } else if (data['dl-color-class'] == '新規') {
+        } else if (data['dl-color-class'] == '緑') {
             color = 'dl-color-green';
             display = 'none';
         } else {

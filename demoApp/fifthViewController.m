@@ -12,8 +12,12 @@
 #import "faceIDManager.h"
 #import "TakeVideoViewController.h"
 #import <WebKit/WebKit.h>
+#import "InfoDatabase.h"
+#import <AFNetworking/AFNetworking.h>
+#import "urlConfig.h"
+#import "service/SF-101/AppComLog.h"
 
-@interface fifthViewController ()<faceIDManagerDelegate>
+@interface fifthViewController ()<faceIDManagerDelegate, ErrorManagerDelegate>
 @property (nonatomic, strong) hudView *myHudView;
 @property (nonatomic, strong) UIButton *footBt;
 @property (nonatomic, strong) UILabel *detailLabel;
@@ -21,19 +25,138 @@
 
 @implementation fifthViewController
 
+static InfoDatabase *db = nil;
 - (void)viewDidLoad {
+    db = [InfoDatabase shareInfoDatabase];
     [super viewDidLoad];
     self.title = @"顔照合";
     self.view.backgroundColor = [UIColor whiteColor];
     [self initView];
-//    hudView *hud = [[hudView alloc] initWithModel:nil isFront:nil];
-//    [hud show];
-//    self.myHudView = hud;
-//    faceIDManager *manager = [faceIDManager sharedFaceIDManager];
-//    manager.delegate = self;
-//    [manager startVerifyWitBizToken:self.bizToken data:self.data];
     [self initProgressBar];
     [self performSelector:@selector(goNextView) withObject:nil afterDelay:3.0f];
+}
+
+// 顔照合（自然人検知）要求(App-Verify)の送信
+- (void)sendVerifyRequest{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"顔照合（自然人検知）要求(App-Verify)" viewID:@"G0120-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self];
+    
+    ErrorManager *manager = [ErrorManager shareErrorManager];
+    manager.delegate = self;
+    
+    AFHTTPSessionManager *sessionManager = [[AFHTTPSessionManager manager] init];
+    [sessionManager.requestSerializer setValue:@"multipart/form-data; charset=utf-8; boundary=__X_PAW_BOUNDARY__" forHTTPHeaderField:@"Content-Type"];
+    NSMutableDictionary* params = [[NSMutableDictionary alloc] initWithDictionary:@{@"sign" : db.identificationData.FACEID_SIGNATURE,
+                                                                                    @"sign_version" : @"hmac_sha1",
+                                                                                    @"biz_token" : db.identificationData.BIZ_TOKEN,
+                                                                                    }];
+    __weak typeof(self) weakSelf = self;
+    [sessionManager POST:[NSString stringWithFormat:@"%@/faceid/v3/sdk/verify", kMGFaceIDNetworkHost]
+              parameters:params
+constructingBodyWithBlock:^(id<AFMultipartFormData>  _Nonnull formData) {
+    [formData appendPartWithFileData:db.identificationData.CAMERA_IMG name:@"meglive_data" fileName:@"meglive_data" mimeType:@"text/html"];
+}
+                progress:nil
+                 success:^(NSURLSessionDataTask * _Nonnull task, id  _Nullable responseObject) {
+                     if (responseObject[@"error"]) {
+                         
+                         // API処理異常時、ポップアップにて「メッセージコード：SF-014-01E」を表示する。
+                         [manager showWithErrorCode:@"SF-014-01E" atCurrentController:self managerType:errorManagerTypeCustom buttonTitle:@"はい" andTag:2000];
+                     }else{
+                         
+                         // API処理正常時
+                         // 顔照合（自然人検知）応答(App-Verify)内容を共通領域.本人確認内容データに編集
+                         [weakSelf dealWithResponseDic:responseObject];
+                         if (db.configFileData.SHOOT_THICKNESS_ENABLE == 1) {
+                             
+                             // 厚み撮影有効時
+                             if ([db.identificationData.RESULT isEqualToString:@"1"]) {
+                                 
+                                 // 照合結果OKの場合
+                                 if (db.identificationData.GAIN_TYPE == 1) {
+                                     
+                                     // 読取方法が「1:カメラ撮影」の場合、「G0130-01：厚み撮影開始前画面」へ遷移する。
+#warning TODO 厚み撮影開始前画面
+                                 }else{
+                                     
+                                     // 読取方法が「2:NFC読取」の場合
+                                     if (db.configFileData.MANGEMENT_CONSOL_USE == 1) {
+                                         
+                                         // 管理コンソール利用、「SF-016:取得情報サーバ送信」を呼び出す。
+                                         
+                                     }else{
+                                         
+                                         // 管理コンソール未利用、「SF-102：操作ログサーバ送信」および「SF-017：処理終了」を呼び出す。
+                                     }
+                                 }
+                             }else{
+                                 
+                                 // 照合結果NGの場合、ポップアップにて「メッセージコード：SF-014-01E」を表示する
+                                 [manager showWithErrorCode:@"SF-014-01E" atCurrentController:self managerType:errorManagerTypeCustom buttonTitle:@"はい" andTag:2000];
+                             }
+                         }else{
+                             
+                             // 厚み撮影無効時
+                             if (db.configFileData.MANGEMENT_CONSOL_USE == 1) {
+                                 
+                                 // 管理コンソール利用
+                                 // 「SF-016:取得情報サーバ送信」を呼び出す。
+                                 
+                             }else{
+                                 
+                                 // 管理コンソール未利用
+                                 // 「SF-102：操作ログサーバ送信」および「SF-017：処理終了」を呼び出す
+                                 
+                             }
+                         }
+                     }
+                 }
+                 failure:^(NSURLSessionDataTask * _Nullable task, NSError * _Nonnull error) {
+                     
+                     // 通信エラー場合、ポップアップにて「メッセージコード：CM-001-02E」を表示する。
+                     [manager showWithErrorCode:@"CM-001-02E" atCurrentController:self managerType:errorManagerTypeCustom buttonTitle:@"再試行" andTag:1000];
+                 }];
+}
+
+
+/**
+ 顔照合（自然人検知）応答(App-Verify)内容を共通領域.本人確認内容データに編集
+
+ @param responseDic 取得するレスポンス
+ */
+- (void)dealWithResponseDic:(NSDictionary *)responseDic{
+    db.identificationData.REQUEST_ID = responseDic[@"request_id"];
+    db.identificationData.SCORE = responseDic[@"verification"][@"idcard"][@"confidence"];
+    NSDictionary *thresholds = responseDic[@"verification"][@"idcard"][@"thresholds"];
+    float score = [db.identificationData.SCORE floatValue];
+    if(db.startParam.THREHOLDS_LEVEL == FARTypeLevelOne){db.identificationData.FAR = thresholds[@"1e-3"];}
+    if(db.startParam.THREHOLDS_LEVEL == FARTypeLevelTwo){db.identificationData.FAR = thresholds[@"1e-4"];}
+    if(db.startParam.THREHOLDS_LEVEL == FARTypeLevelThree){db.identificationData.FAR = thresholds[@"1e-5"];}
+    if(db.startParam.THREHOLDS_LEVEL == FARTypeLevelFour){db.identificationData.FAR = thresholds[@"1e-6"];}
+    float level = [db.identificationData.FAR floatValue];
+    if (score > level) {
+        db.identificationData.RESULT = @"1";
+    }else{
+        db.identificationData.RESULT = @"9";
+    }
+    db.identificationData.FRR = db.identificationData.FAR;
+}
+
+#pragma mark - ErrorManagerDelegate
+- (void)buttonDidClickedWithTag:(NSInteger)tag{
+    if (tag == 1000) {
+        
+        //「再試行ボタン」を押す、顔照合（自然人検知）要求(App-Verify)の再送信
+        [self sendVerifyRequest];
+    }
+    if (tag == 2000) {
+        
+        // 「はい」ボタンタップにより、「SF-013：自然人検知」を呼び出す。
+        [self.navigationController popViewControllerAnimated:YES];
+    }
 }
 
 - (void)initProgressBar {

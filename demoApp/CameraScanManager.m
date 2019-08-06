@@ -83,13 +83,13 @@ static CameraScanManager *manager;
     PDLCameraScanError *scanError = [self.scan captureOnce:topVC];
     if (scanError.code != PDLCameraScanErrorCodeOK) {
         
-        // カメラスキャン起動結果_正常
+        // カメラスキャン起動結果_異常時
         if ([self.delegate respondsToSelector:@selector(cameraScanFailure:)]) {
             [self.delegate cameraScanFailure:scanError.code];
         }
     } else {
         
-        // カメラスキャン起動結果_異常時時
+        // カメラスキャン起動結果_正常時
         if ([self.delegate respondsToSelector:@selector(cameraScanStart)]) {
             [self.delegate cameraScanStart];
         }

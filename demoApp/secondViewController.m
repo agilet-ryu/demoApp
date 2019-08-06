@@ -12,6 +12,7 @@
 #import "hudView.h"
 #import "loginViewController.h"
 #import "InfoDatabase.h"
+#import "service/SF-101/AppComLog.h"
 
 @interface secondViewController ()
 @property (nonatomic, strong) UIButton *nextBT; // 「次へ」ボタン
@@ -71,6 +72,11 @@
 // 次へボタンタップ時
 - (void)goNextView {
     
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"次へボタン" viewID:@"G0030-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self];
+    
     // 共通領域初期化
     InfoDatabase *db = [InfoDatabase shareInfoDatabase];
     SystemCode *sysCode = [Utils getSystemCode];
@@ -95,6 +101,12 @@
         logVC.currentModel = self.currentModel;
         [self.navigationController pushViewController:logVC animated:YES];
     }
+    
+    int tmpDoc = db.identificationData.DOC_TYPE;
+    int tmpRead = db.identificationData.GAIN_TYPE;
+    db.identificationData = [IDENTIFICATION_DATA new];
+    db.identificationData.DOC_TYPE = tmpDoc;
+    db.identificationData.GAIN_TYPE = tmpRead;
 }
 
 // 「カメラ撮影」ボタンタップ時
@@ -128,8 +140,14 @@
     self.navigationItem.rightBarButtonItem = back;
 }
 
-//
+// 閉じるボタン
 - (void)backTo{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"閉じるボタン" viewID:@"G0030-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self];
+    
     [self.navigationController dismissViewControllerAnimated:YES completion:^{
         
     }];

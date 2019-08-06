@@ -82,7 +82,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSString *)getHtmlParam;
 
 #pragma mark - SF-011_顔画像トリミング
-+ (UIImage *)getFaceImageWithOCRImage:(UIImage *)image positionX1:(NSString *)positionX1 positionX2:(NSString *)positionX2 positionY1:(NSString *)positionY1 positionY2:(NSString *)positionY2;
++ (UIImage *)getFaceImageWithOCRImage:(UIImage *)image;
 + (UIImage *)getFaceImageWithCameraScanImage:(UIImage *)image;
 @end
 

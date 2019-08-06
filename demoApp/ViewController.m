@@ -13,7 +13,8 @@
 #import "ConfigXMLParser.h"
 #import "initManager.h"
 #import "NetWorkManager.h"
-
+#import "component/common/TestViewController.h"
+#import "faceIDManager.h"
 
 @interface ViewController ()
 
@@ -31,17 +32,27 @@
 //    NSString *b = [a aci_encryptWithAES];
 //    NSLog(@"哈或或或或%@", b);
 //
-//    UINavigationController *naVC = [[UINavigationController alloc] initWithRootViewController:[[SplashViewController alloc] init]];
-//    [self presentViewController:naVC animated:YES completion:^{
-//    }];
+    UINavigationController *naVC = [[UINavigationController alloc] initWithRootViewController:[[TestViewController alloc] init]];
+    [self presentViewController:naVC animated:YES completion:^{
+    }];
+//    InfoDatabase *db = [InfoDatabase shareInfoDatabase];
+//    [db.eventLogs addObject:@"xixi"];
+//    [[InfoDatabase shareInfoDatabase].eventLogs addObject:@"haha"];
+//    NSLog(@"%@", [InfoDatabase shareInfoDatabase].eventLogs);
     
-    [[NetWorkManager shareNetWorkManager] getOCRMessageWithBase64];
+//    [[NetWorkManager shareNetWorkManager] getOCRMessageWithBase64];
 //    Config *c = [Config new];
 //    [initManager startFinplexWithConfig:c Controller:self callback:^(ResultModel * _Nonnull resultModel, NSString * _Nonnull errorCode) {
 //
 //    }];
 //    ConfigXMLParser *p = [[ConfigXMLParser alloc] init];
 //    [p start];
+    
+    
+}
+
+- (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
+    [[faceIDManager sharedFaceIDManager] getBizTokenWithImage:[UIImage imageNamed:@"face"] viewController:self];
 }
 
 @end

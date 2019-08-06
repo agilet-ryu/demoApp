@@ -11,6 +11,34 @@
 @implementation InfoDatabase
 static InfoDatabase *infoDB = nil;
 
+- (IDENTIFICATION_DATA *)identificationData{
+    if (!_identificationData) {
+        _identificationData = [[IDENTIFICATION_DATA alloc] init];
+    }
+    return _identificationData;
+}
+
+- (Config *)startParam{
+    if (!_startParam) {
+        _startParam = [[Config alloc] init];
+    }
+    return _startParam;
+}
+
+- (CONFIG_FILE_DATA *)configFileData{
+    if (!_configFileData) {
+        _configFileData = [[CONFIG_FILE_DATA alloc] init];
+    }
+    return _configFileData;
+}
+
+- (NSMutableArray *)eventLogs{
+    if (!_eventLogs) {
+        _eventLogs = [NSMutableArray array];
+    }
+    return _eventLogs;
+}
+
 /**
  InfoDatabase初期化
 
@@ -40,7 +68,4 @@ static InfoDatabase *infoDB = nil;
 @end
 
 @implementation CONFIG_FILE_DATA
-@end
-
-@implementation EVENT_LOG
 @end

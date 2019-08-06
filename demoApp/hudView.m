@@ -11,7 +11,7 @@
 #import "CameraScanManager.h"
 #import "thirdViewController.h"
 #import "Utils.h"
-
+#import "service/SF-101/AppComLog.h"
 
 @interface hudView()<cameraScanManagerDelegate>
 
@@ -31,6 +31,11 @@
 // カメラスキャン初期化
 - (CameraScanManager *)cameraScanManager{
     if (!_cameraScanManager) {
+        
+        // 操作ログ編集
+        [AppComLog writeEventLog:@"カメラスキャンの初期化処理" viewID:@"G0040-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+            
+        } atController:self.currentController];
         _cameraScanManager = [CameraScanManager sharedCameraScanManager];
     }
     return _cameraScanManager;
@@ -44,8 +49,7 @@
         self.backgroundColor = [UIColor colorWithWhite:1.0f alpha:0.7f];
         self.currentModel = currentModel;
         self.isFront = YES;
-        UIWindow *keyWin = [UIApplication sharedApplication].keyWindow;
-        [keyWin addSubview:self];
+        [controller.view addSubview:self];
         self.cameraScanManager.delegate = self;
     }
     return self;
@@ -131,6 +135,12 @@
  カメラスキャン起動
  */
 - (void)startCameraScan{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"はいボタン" viewID:@"G0040-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self.currentController];
+    
     [self.cameraScanManager start];
     [self hideController:YES];
 }
@@ -163,6 +173,11 @@
 // 書類の認識成功時に呼び出されます。
 - (void)cameraScanSuccessWithImage:(UIImage *)image andCropResult:(NSInteger)cropResult{
     
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"カメラスキャン終了処理" viewID:@"G0050-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self.currentController];
+    
     // 共通領域初期化
     InfoDatabase *db = [InfoDatabase shareInfoDatabase];
     
@@ -171,7 +186,7 @@
             // 撮影回数＜指定回数分の場合
             // カメラスキャンより返却された撮影結果画像を共通領域へ設定する
             db.identificationData.OBVERSE_IMG = image;
-            db.identificationData.IMG_CROPPING = [NSString stringWithFormat:@"%ld", (long)cropResult];
+            db.identificationData.IMG_CROPPING1 = cropResult == 0;
             
             // 「G0040-01：本人確認書類撮影開始画面」画面を再表示する。
             self.isFront = NO;
@@ -179,7 +194,7 @@
             // 撮影回数＝指定回数分の場合
             // カメラスキャンより返却された撮影結果画像を共通領域へ設定する
             db.identificationData.REVERSE_IMG = image;
-            db.identificationData.IMG_CROPPING = [NSString stringWithFormat:@"%ld", (long)cropResult];
+            db.identificationData.IMG_CROPPING2 = cropResult == 0;
             
             // カメラスキャンの関数_deinitResourceメソッドを呼び出し
             [self.cameraScanManager deinitResource];
@@ -194,7 +209,7 @@
         // 撮影回数＝指定回数分の場合
         // カメラスキャンより返却された撮影結果画像を共通領域へ設定する
         db.identificationData.OBVERSE_IMG = image;
-        db.identificationData.IMG_CROPPING = [NSString stringWithFormat:@"%ld", (long)cropResult];
+        db.identificationData.IMG_CROPPING1 = cropResult == 0;
         
         // カメラスキャンの関数_deinitResourceメソッドを呼び出し
         [self.cameraScanManager deinitResource];
@@ -209,6 +224,11 @@
 
 // プレビュー／認識中に何らかのエラーが発生した場合に呼び出されます。
 - (void)cameraScanFailure:(NSInteger)errorCode{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"カメラスキャン終了処理" viewID:@"G0050-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self.currentController];
     
     // カメラスキャン初期化またはカメラスキャン起動にてエラーが返却された場合、ポップアップでエラー内容に応じたメッセージを表示する。
     // ポップアップには「はい」ボタンのみ表示し、ライブラリにてエラー発生処理のリトライ等は実施しない。
@@ -230,11 +250,21 @@
 
 // キャンセルボタンを押す時に呼び出されます。
 - (void)cameraScanCancel{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"キャンセル" viewID:@"G0050-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self.currentController];
     [self hideController:NO];
 }
 
 // カメラスキャン起動成功時に呼び出されます。
 - (void)cameraScanStart{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"カメラスキャン起動" viewID:@"G0050-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self.currentController];
     [self hideController:NO];
 }
 
@@ -245,12 +275,7 @@
     [self.cameraScanManager deinitResource];
     
     // 本画面を閉じる。
-    UIWindow *keyWin = [UIApplication sharedApplication].keyWindow;
-    for (UIView *view in keyWin.subviews) {
-        if ([view isKindOfClass:[hudView class]]) {
-            [view removeFromSuperview];
-        }
-    }
+    [self removeFromSuperview];
 }
 
 // いいえボタン活性状態で表示する

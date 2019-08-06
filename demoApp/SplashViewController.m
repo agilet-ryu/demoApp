@@ -10,10 +10,12 @@
 #import "TableViewController.h"
 #import "NSString+checkString.h"
 #import "NSArray+checkArray.h"
-#import "InfoDatabase.h"
+
 #import "ConfigXMLParser.h"
 #import "ErrorManager.h"
+#import "AppComLog.h"
 #import "NetWorkManager.h"
+#import "InfoDatabase.h"
 
 @interface SplashViewController ()
 @property (nonatomic, strong) UIActivityIndicatorView *indicatorView;
@@ -75,7 +77,12 @@
 
         // 設定ファイルパラメータ展開
         [[ConfigXMLParser new] start];
-
+        
+        // 操作ログ編集
+        [AppComLog writeEventLog:@"G0010-01" viewID:@"SF-002認証" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+            
+        } atController:self];
+        
         // 「SF-002：認証」機能を呼び出す。
         [[NetWorkManager shareNetWorkManager] getFaceIDSignWithCurrentController:self];
     } else{

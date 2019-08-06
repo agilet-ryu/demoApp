@@ -8,11 +8,34 @@
 
 #import <Foundation/Foundation.h>
 #import "UIColor+hexString.h"
-#import "ShadowButton.h"
+
+#define SCREEN_WIDTH ([UIScreen mainScreen].bounds.size.width)
+#define SCREEN_HEIGHT ([UIScreen mainScreen].bounds.size.height)
+#define kNavAndStatusHight  self.navigationController.navigationBar.frame.size.height+[[UIApplication sharedApplication] statusBarFrame].size.height
+
+#define AUTOx(x) (x * [UIScreen mainScreen].bounds.size.width / 750.0f)
+#define AUTOy(y) (y * [UIScreen mainScreen].bounds.size.height / 1334.0f)
+
+#define kLineWidth 2.0f
+#define kButtonHeightLarge 60.0f
+#define kButtonHeightMedium 50.0f
+#define kButtonHeightSmall 30.0f
+#define kButtonRadiusLarge 6.0f
+#define kButtonRadiusMedium 6.0f
+#define kFooterHeight 96.0f
+#define kPaddingHeightMedium 18.0f
+#define kPaddingHeightLarge 30.0f
+#define kPaddingwidthMedium 16.0f
+#define kFontSizeLarge [UIFont systemFontOfSize:[UITool shareUITool].textSizeLarge]
+#define kFontSizeMedium [UIFont systemFontOfSize:[UITool shareUITool].textSizeMedium]
+#define kFontSizeSmall [UIFont systemFontOfSize:[UITool shareUITool].textSizeSmall]
+
 #define kBaseColor [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:1.0f]
 #define kBaseColorUnEnabled [UIColor colorWithHexString:[UITool shareUITool].baseColorHexString alpha:0.3f]
 #define kBodyTextColor [UIColor colorWithHexString:[UITool shareUITool].bodyTextColorHexString alpha:1.0f]
 #define kLineColor [UIColor colorWithHexString:[UITool shareUITool].lineColorHexString alpha:1.0f]
+#define kBodyColor [UIColor colorWithHexString:[UITool shareUITool].bodyColorHexString alpha:1.0f]
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface UITool : NSObject

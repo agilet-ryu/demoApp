@@ -7,7 +7,7 @@
 //
 
 #import "ErrorManager.h"
-
+#import "UITool.h"
 
 @implementation ErrorManager
 
@@ -61,13 +61,72 @@ static ErrorManager *manager = nil;
         [errorString stringByReplacingOccurrencesOfString:@"%2" withString:secondMsg];
     }
     UIAlertController *a = [UIAlertController alertControllerWithTitle:@"" message:errorString preferredStyle:UIAlertControllerStyleAlert];
-    [a addAction:[UIAlertAction actionWithTitle:@"はい" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+    
+    NSMutableAttributedString *alertControllerMessageStr = [[NSMutableAttributedString alloc] initWithString:errorString];
+    [alertControllerMessageStr addAttribute:NSFontAttributeName value:kFontSizeSmall range:NSMakeRange(0, errorString.length)];
+    [alertControllerMessageStr addAttribute:NSForegroundColorAttributeName value:kBodyTextColor range:NSMakeRange(0, errorString.length)];
+    NSMutableParagraphStyle *paragraphStyle = [[NSMutableParagraphStyle alloc]init];
+    [paragraphStyle setLineSpacing:5];
+    [alertControllerMessageStr addAttribute:NSParagraphStyleAttributeName
+                          value:paragraphStyle
+                          range:NSMakeRange(0, errorString.length)];
+    [a setValue:alertControllerMessageStr forKey:@"attributedMessage"];
+
+    [a addAction:[UIAlertAction actionWithTitle:@"はい" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         
         // 「SF-102:操作ログサーバ送信」、｢SF-017:処理終了｣を呼び出す。
         if (type == errorManagerTypeSDKClose) {
             [currentController.navigationController dismissViewControllerAnimated:YES completion:^{
                 
             }];
+        }
+    }]];
+    [currentController presentViewController:a animated:YES completion:^{
+    }];
+}
+
+- (void)showWithErrorCode:(NSString *)errorCode atCurrentController:(UIViewController *)currentController managerType:(errorManagerType)type buttonTitle:(NSString *)buttonTitle addFirstMsg:(NSString *)firstMsg addSecondMsg:(NSString *)secondMsg andTag:(NSInteger)tag{
+    
+    NSString *errorString = [NSString stringWithFormat:@"%@", [self getErrorStringWithErrorCode:errorCode]];
+    if ([errorString containsString:@"%1"] && firstMsg) {
+        [errorString stringByReplacingOccurrencesOfString:@"%1" withString:firstMsg];
+    }
+    if ([errorString containsString:@"%2"] && secondMsg) {
+        [errorString stringByReplacingOccurrencesOfString:@"%2" withString:secondMsg];
+    }
+    UIAlertController *a = [UIAlertController alertControllerWithTitle:@"" message:errorString preferredStyle:UIAlertControllerStyleAlert];
+    NSString *title = buttonTitle.length ? buttonTitle : @"はい";
+    [a addAction:[UIAlertAction actionWithTitle:title style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        
+        // 「SF-102:操作ログサーバ送信」、｢SF-017:処理終了｣を呼び出す。
+        if (type == errorManagerTypeSDKClose) {
+            [currentController.navigationController dismissViewControllerAnimated:YES completion:^{
+                
+            }];
+        }else if (type == errorManagerTypeCustom){
+            if ([self.delegate respondsToSelector:@selector(buttonDidClickedWithTag:)]) {
+                [self.delegate buttonDidClickedWithTag:tag];
+            }
+        }
+    }]];
+    [currentController presentViewController:a animated:YES completion:^{
+        
+    }];
+}
+/**
+ エラー画面を表示する
+ 
+ @param errorCode エラーコード
+ @param currentController ポップアップ
+ @param type エラー画面の種類
+ @param buttonTitle ボタン
+ */
+- (void)showWithErrorCode:(NSString *)errorCode atCurrentController:(UIViewController *)currentController managerType:(errorManagerType)type buttonTitle:(NSString *)buttonTitle andTag:(NSInteger)tag{
+    NSString *errorString = [NSString stringWithFormat:@"%@", [self getErrorStringWithErrorCode:errorCode]];
+    UIAlertController *a = [UIAlertController alertControllerWithTitle:@"" message:errorString preferredStyle:UIAlertControllerStyleAlert];
+    [a addAction:[UIAlertAction actionWithTitle:buttonTitle style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+        if ([self.delegate respondsToSelector:@selector(buttonDidClickedWithTag:)]) {
+            [self.delegate buttonDidClickedWithTag:tag];
         }
     }]];
     [currentController presentViewController:a animated:YES completion:^{

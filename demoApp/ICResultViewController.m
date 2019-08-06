@@ -161,7 +161,6 @@
 
 - (void)getBizTokenSuccuss:(NSString *)bizToken{
     fouthViewController *f = [[fouthViewController alloc] init];
-    f.bizToken = bizToken;
     [self.myHud hide];
     [self.navigationController pushViewController:f animated:YES];
 }

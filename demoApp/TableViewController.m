@@ -13,6 +13,7 @@
 #import "InfoDatabase.h"
 #import "loginViewController.h"
 #import "hudView.h"
+#import "service/SF-101/AppComLog.h"
 
 @interface TableViewController ()<firstTableViewCellDelegate>
 @property (strong, nonatomic) NSMutableArray <firstTableModel *>*modelList; // 書類配列
@@ -61,8 +62,7 @@
 // 画面初期化
 - (void)initView{
     self.view.backgroundColor = [UIColor whiteColor];
-    [self.tableView registerClass:[firstTableViewCell class] forCellReuseIdentifier:@"reuseIdentifier"];
-    self.tableView.bounces = NO;
+
     UIButton *footBT = [UIButton buttonWithType:UIButtonTypeCustom];
     [footBT setFrame:CGRectMake(16, [UIScreen mainScreen].bounds.size.height - 68 - 64, [UIScreen mainScreen].bounds.size.width - 32, 54)];
     [footBT setTitle:@"次へ" forState:UIControlStateNormal];
@@ -77,18 +77,28 @@
     self.nextBT = footBT;
     
     self.title = @"本人確認書類の選択";
-    [self.tableView setFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height - 50 -64)];
-    self.tableView.tableFooterView = [[UIView alloc] init];
-    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
     
     self.navigationController.navigationBar.tintColor = [UIColor blackColor];
     UIBarButtonItem *back = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(backTo)];
     self.navigationItem.rightBarButtonItem = back;
     [self.navigationItem setHidesBackButton:YES];
+
+    
+    [self.tableView registerClass:[firstTableViewCell class] forCellReuseIdentifier:@"reuseIdentifier"];
+    self.tableView.bounces = NO;
+    [self.tableView setFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, [UIScreen mainScreen].bounds.size.height - 50 -64)];
+    self.tableView.tableFooterView = [[UIView alloc] init];
+    self.tableView.separatorStyle = UITableViewCellSeparatorStyleNone;
 }
 
 // 「次へ」ボタンをタップ時、イベント処理を実施する。
 - (void)goNextView {
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"次へボタン" viewID:@"G0020-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self];
+    
     // 共通領域初期化
     InfoDatabase *db = [InfoDatabase shareInfoDatabase];
     SystemCode *sysCode = [Utils getSystemCode];
@@ -172,6 +182,12 @@
     back.title = @"";
     self.navigationItem.backBarButtonItem = back;
     [self.navigationController pushViewController:nextController animated:YES];
+    
+    int tmpDoc = db.identificationData.DOC_TYPE;
+    int tmpRead = db.identificationData.GAIN_TYPE;
+    db.identificationData = [IDENTIFICATION_DATA new];
+    db.identificationData.DOC_TYPE = tmpDoc;
+    db.identificationData.GAIN_TYPE = tmpRead;
 }
 
 #pragma mark - delegate
@@ -228,6 +244,11 @@
 }
 
 - (void)backTo{
+    
+    // 操作ログ編集
+    [AppComLog writeEventLog:@"閉じるボタン" viewID:@"G0020-01" LogLevel:LOGLEVELInformation withCallback:^(NSString * _Nonnull resultCode) {
+        
+    } atController:self];
     [self.navigationController dismissViewControllerAnimated:YES completion:^{
         
     }];

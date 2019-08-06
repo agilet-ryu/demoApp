@@ -9,5 +9,12 @@
 #import "ResultModel.h"
 
 @implementation ResultModel
-
+static ResultModel *result = nil;
++ (instancetype)shareResultModel{
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        result = [[ResultModel alloc] init];
+    });
+    return result;
+}
 @end

@@ -13,7 +13,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef void(^FinplexResultBlock)(ResultModel* resultModel, NSString* errorCode);  // オンライン本人確認ライブラリ処理結果応答
+typedef void(^FinplexResultBlock)(ResultModel* resultModel);  // オンライン本人確認ライブラリ処理結果応答
 
 @interface initManager : NSObject
 
@@ -22,12 +22,12 @@ typedef void(^FinplexResultBlock)(ResultModel* resultModel, NSString* errorCode)
  
  @param config 呼出元アプリ入力パラメータ
  @param currentController 呼出元アプリのController
- @param block オンライン本人確認ライブラリ処理結果応答
+ @param callBack オンライン本人確認ライブラリ処理結果応答
  @return Finplex初期化
  */
 + (instancetype)startFinplexWithConfig:(Config *)config
                             Controller:(UIViewController *)currentController
-                              callback:(FinplexResultBlock)block;
+                              callback:(FinplexResultBlock)callBack;
 
 @end
 

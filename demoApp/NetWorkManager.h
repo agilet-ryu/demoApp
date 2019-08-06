@@ -10,8 +10,16 @@
 #import <UIKit/UIKit.h>
 NS_ASSUME_NONNULL_BEGIN
 
+@protocol NetWorkManagerDelegate <NSObject>
+
+- (void)getOCRResultFailureWithErrorCode:(NSString *)errorcode;
+- (void)getOCRResultSuccess;
+- (void)getOCRResultNetFailure;
+@end
+
 @interface NetWorkManager : NSObject
 
+@property (nonatomic, assign) id<NetWorkManagerDelegate>delegate;
 
 /**
  NetWorkManager初期化
@@ -31,7 +39,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)getOCRMessageWithBase64;
 
 // SF-010：サーバOCR
-- (void)getOCRMessageWithFile:(UIImage *)image andCurrentController:(UIViewController *)controller;
+- (void)getOCRMessageWithFile:(UIImage *)image;
 
 - (void)testWithBase64;
 - (void)testWithAESFile;
